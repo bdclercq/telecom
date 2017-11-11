@@ -26,7 +26,14 @@ class RegReq : public Element {
   uint8_t _regreq_type;
   uint16_t _lifetime;
   
-  vector<bool> _flags (8, 0);
+  bool _s_flag;
+  bool _b_flag;
+  bool _d_flag;
+  bool _m_flag;
+  bool _g_glag;
+  bool _r_flag;
+  bool _t_flag;
+  bool _x_flag;
   
   #ifdef CLICK_LINUXMODULE
   bool _aligned : 1;
