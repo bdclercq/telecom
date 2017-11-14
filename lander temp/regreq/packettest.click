@@ -6,7 +6,7 @@ source::RegReq(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 responder::ICMPPingResponder;
 switch::ListenEtherSwitch
 
-udpencap::UPDIPEncap($src, 25565, $dst, 25565);
+udpencap::UDPIPEncap($src, 25565, $dst, 25565);
 etherencap::EtherEncap(0x0800, $src, $dst);
 
 elementclass Router { $src | 
