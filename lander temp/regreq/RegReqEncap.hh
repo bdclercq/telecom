@@ -4,7 +4,7 @@
 #include <click/glue.hh>
 #include <click/atomic.hh>
 #include <clicknet/udp.h>
-#include <vector>
+#include <cmath.h>
 CLICK_DECLS
 
 class RegReq : public Element {

@@ -6,6 +6,18 @@
 #include <click/standard/alignmentinfo.hh>
 CLICK_DECLS
 
+struct RegReqPacket {
+
+    uint8_t type;
+    uint8_t flags;
+    uint16_t lifetime;
+    uint32_t home_address;
+    uint32_t home_agent;
+    uint32_t care_of_address;
+    uint64_t identification;
+
+}
+
 RegReqEncap::RegReq()
 {
 }
@@ -21,14 +33,14 @@ RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
     //_interval = 0;
     if (Args(conf, this, errh)
 	.read_mp("TYPE", _regreq_type)
-	.read_mp("S", _flags[0])
-	.read_mp("B", _flags[1])
-	.read_mp("D", _flags[2])
-	.read_mp("M", _flags[3])
-    .read_mp("G", _flags[4])
-    .read_mp("r", _flags[5])
-    .read_mp("T", _flags[6])
-    .read_mp("x", _flags[7])
+	.read_mp("S", _s_flag)
+	.read_mp("B", _b_flag)
+	.read_mp("D", _d_flag)
+	.read_mp("M", _m_flag)
+    .read_mp("G", _g_flag)
+    .read_mp("r", _r_flag)
+    .read_mp("T", _t_flag)
+    .read_mp("x", _x_flag)
     .read_mp("LIFETIME", _lifetime)
     .read_mp("HOME_ADDRESS", _haddr)
     .read_mp("HOME_AGENT", _haaddr)
@@ -65,8 +77,26 @@ Packet* RegReq::make_packet(){
         return 0;
     memset(q->data(), '\0', 160);
     
-    //set specific bits to specific values
+    Vector<bool> flags = {_s_flag, _b_flag, _d_flag, _m_flag, _g_flag, _t_flag, _t_flag, _x_flag};
     
-    q->set_dst_ip_anno(_daddr);
+    RegReqPacket* rr = (RegReqPacket*)q->data();
+    
+    rr->type = _regreq_type;
+    
+    uint8_t flagint = 0;
+    for (int i = 0; i < flags.size(); i++) {
+        if (flags[i]) {
+            flagint += pow(2, (flags.size() - 1) - i);
+        }
+    }
+    
+    rr->flags = flagint;
+    rr->lifetime = _lifetime
+    rr->home_address = _haddr;
+    rr->home_agent = _haaddr;
+    rr->care_of_address = _coaddr;
+    rr->identification = _identicifation;
+    
+    return q;
 
 }
