@@ -12,6 +12,7 @@ CLICK_DECLS
 class RegReq : public Element {
 
   private:
+    Timer _timer;
   IPAddress _saddr;
   IPAddress _daddr;
   
@@ -52,7 +53,7 @@ class RegReq : public Element {
 
   int configure(Vector<String> &, ErrorHandler *) CLICK_COLD;
 
-  void push(Timer *);
+    void run_timer(Timer *);
   Packet *make_packet();
 
 };
