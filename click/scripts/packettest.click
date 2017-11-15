@@ -2,12 +2,12 @@ AddressInfo(sourceAddr 10.0.0.1 1A:7C:3E:90:78:41)
 AddressInfo(responderAddr 10.0.0.2 1A:7C:3E:90:78:42)
 
 //source::ICMPPingSource(sourceAddr, responderAddr, INTERVAL 0.2, LIMIT 20);
-source::RegReq(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+source::RegReq(0, 0, 0, 0, 0, 0, 0, 0, 0, 500, sourceAddr, sourceAddr, sourceAddr, 0);
 responder::ICMPPingResponder;
 switch::ListenEtherSwitch
 
-udpencap::UDPIPEncap($src, 25565, $dst, 25565);
-etherencap::EtherEncap(0x0800, $src, $dst);
+udpencap::UDPIPEncap(sourceAddr, 25565, responderAddr, 25565);
+etherencap::EtherEncap(0x0800, sourceAddr, responderAddr);
 
 elementclass Router { $src | 
 	
@@ -44,7 +44,7 @@ elementclass Router { $src |
 }
 
 source
-    -> updencap
+    -> udpencap
     -> etherencap
 	-> [0] sourceRouter::Router(sourceAddr) [0]
 	-> [0] switch

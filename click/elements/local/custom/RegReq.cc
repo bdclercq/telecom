@@ -8,7 +8,7 @@
 #include <click/glue.hh>
 #include <click/standard/alignmentinfo.hh>
 
-#include "RegReqEncap.hh"
+#include "RegReq.hh"
 CLICK_DECLS
 
 struct RegReqPacket {
@@ -16,9 +16,9 @@ struct RegReqPacket {
     uint8_t type;
     uint8_t flags;
     uint16_t lifetime;
-    uint32_t home_address;
-    uint32_t home_agent;
-    uint32_t care_of_address;
+    IPAddress home_address;
+    IPAddress home_agent;
+    IPAddress care_of_address;
     uint64_t identification;
 
 };
@@ -108,7 +108,7 @@ Packet* RegReq::make_packet(){
     rr->home_address = _haddr;
     rr->home_agent = _haaddr;
     rr->care_of_address = _coaddr;
-    rr->identification = _identicifation;
+    rr->identification = _identification;
     
     return q;
 

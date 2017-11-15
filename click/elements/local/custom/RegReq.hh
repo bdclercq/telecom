@@ -4,19 +4,21 @@
 #include <click/element.hh>
 #include <clicknet/udp.h>
 #include <click/atomic.hh>
+#include <click/ipaddress.hh>
 CLICK_DECLS
 
 class RegReq : public Element {
+
   private:
-  struct in_addr _saddr;
-  struct in_addr _daddr;
+  IPAddress _saddr;
+  IPAddress _daddr;
   
   uint16_t _sport;
   uint16_t _dport;
   
-  struct in_addr _haddr;
-  struct in_addr _haaddr;
-  struct in_addr _coaddr;
+  IPAddress _haddr;
+  IPAddress _haaddr;
+  IPAddress _coaddr;
   
   uint64_t _identification;
   
