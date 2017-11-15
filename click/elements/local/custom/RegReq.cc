@@ -99,7 +99,7 @@ Packet* RegReq::make_packet(){
     uint8_t flagint = 1;
     for (int i = 0; i < flags.size(); i++) {
         if (flags[i]) {
-            flagint += (2 ** ((flags.size() - 1) - i));
+            flagint += (1 << ((flags.size() - 1) - i));
         }
     }
     
