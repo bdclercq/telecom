@@ -5,6 +5,8 @@
 #include <clicknet/udp.h>
 #include <click/atomic.hh>
 #include <click/ipaddress.hh>
+#include <click/timer.hh>
+
 CLICK_DECLS
 
 class RegReq : public Element {
@@ -45,10 +47,12 @@ class RegReq : public Element {
 
   const char *class_name() const	{ return "RegReq"; }
   const char *port_count() const	{ return PORTS_1_1; }
+  const char *processing() const	{ return PUSH; }
   const char *flags() const		{ return "A"; }
 
   int configure(Vector<String> &, ErrorHandler *) CLICK_COLD;
 
+  void push(Timer *);
   Packet *make_packet();
 
 };

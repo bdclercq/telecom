@@ -71,6 +71,10 @@ RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
   }
 #endif
 
+    Timer *timer = new Timer(this);
+	timer->initialize(this);
+	timer->schedule_after_msec(1000);
+
   return 0;
 }
 
@@ -112,6 +116,14 @@ Packet* RegReq::make_packet(){
     
     return q;
 
+}
+
+void RegReq::push(Timer* timer){
+    if (Packet *q = make_packet()) {
+ 	   output(0).push(q);
+ 	   timer->schedule_after_msec(1000);
+ 	   click_chatter("pushed");
+    }
 }
 
 CLICK_ENDDECLS
