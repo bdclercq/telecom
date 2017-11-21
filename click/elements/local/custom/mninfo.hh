@@ -23,8 +23,8 @@ class MNInfo : public Element {
         IPAddress _foreign_agent;
         uint16_t _lifetime;
 
-}
+};
 
-CLICK_DECLS
+CLICK_ENDDECLS
 
 #endif

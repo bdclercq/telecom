@@ -7,39 +7,19 @@
 #include <click/ipaddress.hh>
 #include <click/timer.hh>
 
+#include "mninfo.hh"
+
 CLICK_DECLS
 
 class RegReq : public Element {
 
   private:
-    Timer _timer;
-  IPAddress _saddr;
-  IPAddress _daddr;
-  
-  uint16_t _sport;
-  uint16_t _dport;
-  
-  IPAddress _haddr;
-  IPAddress _haaddr;
-  IPAddress _coaddr;
+  MNInfo* _mninfo;
+  Timer _timer;
   
   uint64_t _identification;
   
-  uint8_t _regreq_type;
   uint16_t _lifetime;
-  
-  bool _s_flag;
-  bool _b_flag;
-  bool _d_flag;
-  bool _m_flag;
-  bool _g_flag;
-  bool _r_flag;
-  bool _t_flag;
-  bool _x_flag;
-  
-  #ifdef CLICK_LINUXMODULE
-  bool _aligned : 1;
-  #endif
 
  public:
 
@@ -57,6 +37,19 @@ class RegReq : public Element {
   Packet *make_packet();
 
 };
+
+struct RegReqHeader {
+
+    uint8_t type;
+    uint8_t flags;
+    uint16_t lifetime;
+    IPAddress home_address;
+    IPAddress home_agent;
+    IPAddress care_of_address;
+    uint64_t identification;
+
+};
+
 CLICK_ENDDECLS
 
 #endif

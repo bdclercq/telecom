@@ -9,71 +9,25 @@
 #include <click/standard/alignmentinfo.hh>
 
 #include "RegReq.hh"
+
 CLICK_DECLS
 
-struct RegReqPacket {
+RegReq::RegReq() : _timer(this), _lifetime(1800) {}
 
-    uint8_t type;
-    uint8_t flags;
-    uint16_t lifetime;
-    IPAddress home_address;
-    IPAddress home_agent;
-    IPAddress care_of_address;
-    uint64_t identification;
+RegReq::~RegReq() {}
 
-};
-
-RegReq::RegReq()
+int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 {
-}
 
-RegReq::~RegReq()
-{
-}
-
-int
-RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
-{
-    //bool do_cksum = true;
-    //_interval = 0;
     if (Args(conf, this, errh)
-	.read_mp("TYPE", _regreq_type)
-	.read_mp("S", _s_flag)
-	.read_mp("B", _b_flag)
-	.read_mp("D", _d_flag)
-	.read_mp("M", _m_flag)
-    .read_mp("G", _g_flag)
-    .read_mp("r", _r_flag)
-    .read_mp("T", _t_flag)
-    .read_mp("x", _x_flag)
+    .read_mp("MNInfo", _mninfo)
     .read_mp("LIFETIME", _lifetime)
-    .read_mp("HOME_ADDRESS", _haddr)
-    .read_mp("HOME_AGENT", _haaddr)
-    .read_mp("CARE_OF_ADDRESS", _coaddr)
-    .read_mp("IDENTIFCATION", _identification)
 	.complete() < 0)
 	return -1;
 
-  //_id = 0;
-  //_cksum = do_cksum;
-  //_count = 0;
 
-#ifdef CLICK_LINUXMODULE
-  // check alignment
-  {
-    int ans, c, o;
-    ans = AlignmentInfo::query(this, 0, c, o);
-    _aligned = (ans && c == 4 && o == 0);
-    if (!_aligned)
-      errh->warning("IP header unaligned, cannot use fast IP checksum");
-    if (!ans)
-      errh->message("(Try passing the configuration through `click-align'.)");
-  }
-#endif
-
-    Timer *timer = new Timer(this);
-    timer->initialize(this);
-    timer->schedule_after_msec(1000);
+    _timer.initialize(this);
+    _timer.schedule_after_msec(1000);
 
     return 0;
 }
@@ -81,38 +35,34 @@ RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 Packet* RegReq::make_packet(){
 
     int headroom = sizeof(click_ether);
-    WritablePacket* q = Packet::make(headroom, 0, 160, 0);
+    int p_size = sizeof(RegReqHeader);
+    WritablePacket* q = Packet::make(headroom, 0, p_size, 0);
+    
     if (!q)
         return 0;
-    memset(q->data(), '\0', 160);
+        
+    memset(q->data(), '\0', q->length());
     
-    Vector<bool> flags;
-	flags.push_back(_s_flag);
-	flags.push_back(_b_flag);
-	flags.push_back(_d_flag);
-	flags.push_back(_m_flag);
-	flags.push_back(_g_flag);
-	flags.push_back(_r_flag);
-	flags.push_back(_t_flag);
-	flags.push_back(_x_flag);
+    RegReqHeader* rr = (RegReqHeader*)q->data();
     
-    RegReqPacket* rr = (RegReqPacket*)q->data();
+    rr->type = 1;
     
-    rr->type = _regreq_type;
-    
-    uint8_t flagint = 1;
-    for (int i = 0; i < flags.size(); i++) {
-        if (flags[i]) {
-            flagint += (1 << ((flags.size() - 1) - i));
-        }
-    }
+    //all fixed for now
+    uint8_t flagint = (0 << 7)
+                    + (0 << 6)
+                    + (0 << 5)
+                    + (0 << 4)
+                    + (0 << 3)
+                    + (0 << 2)
+                    + (0 << 1)
+                    + (0);
     
     rr->flags = flagint;
-    rr->lifetime = _lifetime;
-    rr->home_address = _haddr;
-    rr->home_agent = _haaddr;
-    rr->care_of_address = _coaddr;
-    rr->identification = _identification;
+    rr->lifetime = htons(_lifetime);
+    rr->home_address = _mninfo->_home_address;
+    rr->home_agent = _mninfo->_home_agent;
+    rr->care_of_address = IPAddress(0); //fixed for now
+    rr->identification = htons(0);
     
     return q;
 
@@ -122,7 +72,7 @@ void RegReq::run_timer(Timer *timer)
 {
     if (Packet *q = make_packet()) {
         output(0).push(q);
-        timer->reschedule_after_msec(1000);
+        _timer.reschedule_after_msec(1000);
     }
 }
 

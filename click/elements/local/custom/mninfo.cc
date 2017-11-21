@@ -1,19 +1,20 @@
-
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/error.hh>
+#include <click/args.hh>
+
 #include "mninfo.hh"
 
 CLICK_DECLS
 
-MNInfo::MNInfo() : connected(false) {}
+MNInfo::MNInfo() : _connected(false) {}
 MNInfo::~MNInfo() {}
 
 int MNInfo::configure(Vector<String> &conf, ErrorHandler *errh) {
 
     if (Args(conf, this, errh)
-        .readMP("HOMEAGENT", _home_agent)
-        .readMP("HOMEADDRES", _home_address)
+        .read_mp("HOMEAGENT", _home_agent)
+        .read_mp("HOMEADDRES", _home_address)
         .complete() < 0)
         return -1;
         
@@ -23,6 +24,6 @@ int MNInfo::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 }
 
-CLICK_DECLS
+CLICK_ENDDECLS
 
 EXPORT_ELEMENT(MNInfo)
