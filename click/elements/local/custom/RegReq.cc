@@ -18,14 +18,16 @@ RegReq::~RegReq() {}
 
 int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 {
-
+	IPAddress home_agent;
+        IPAddress home_address;
     if (Args(conf, this, errh)
-    .read_mp("MNInfo", _mninfo)
+    .read_mp("HOMAGENT", home_agent).read_mp("HOMEADDRESS", home_address)
     .read_mp("LIFETIME", _lifetime)
 	.complete() < 0)
 	return -1;
 
-
+	_mninfo = new MNInfo(home_agent, home_address);
+	
     _timer.initialize(this);
     _timer.schedule_after_msec(1000);
 

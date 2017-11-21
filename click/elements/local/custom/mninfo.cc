@@ -8,6 +8,11 @@
 CLICK_DECLS
 
 MNInfo::MNInfo() : _connected(false) {}
+
+MNInfo::MNInfo(IPAddress agent, IPAddress address): _connected(false){
+	_home_agent = agent;
+	_home_address = address;
+}
 MNInfo::~MNInfo() {}
 
 int MNInfo::configure(Vector<String> &conf, ErrorHandler *errh) {

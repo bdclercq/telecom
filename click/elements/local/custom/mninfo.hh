@@ -9,6 +9,7 @@ class MNInfo : public Element {
 
     public:
         MNInfo();
+	MNInfo(IPAddress,IPAddress);
         ~MNInfo();
         
         const char *class_name() const { return "MNInfo"; }

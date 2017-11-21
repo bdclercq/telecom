@@ -11,6 +11,18 @@
 
 CLICK_DECLS
 
+struct RegReqHeader {
+
+    uint8_t type;
+    uint8_t flags;
+    uint16_t lifetime;
+    IPAddress home_address;
+    IPAddress home_agent;
+    IPAddress care_of_address;
+    uint64_t identification;
+
+};
+
 class RegReq : public Element {
 
   private:
@@ -35,18 +47,6 @@ class RegReq : public Element {
 
     void run_timer(Timer *);
   Packet *make_packet();
-
-};
-
-struct RegReqHeader {
-
-    uint8_t type;
-    uint8_t flags;
-    uint16_t lifetime;
-    IPAddress home_address;
-    IPAddress home_agent;
-    IPAddress care_of_address;
-    uint64_t identification;
 
 };
 
