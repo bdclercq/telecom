@@ -26,7 +26,7 @@ int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 	.complete() < 0)
 	return -1;
 
-	_mninfo = new MNInfo(home_agent, home_address);
+	_mn = new MN(home_agent, home_address);
 	
     _timer.initialize(this);
     _timer.schedule_after_msec(1000);
@@ -61,8 +61,8 @@ Packet* RegReq::make_packet(){
     
     rr->flags = flagint;
     rr->lifetime = htons(_lifetime);
-    rr->home_address = _mninfo->_home_address;
-    rr->home_agent = _mninfo->_home_agent;
+    rr->home_address = _mn->_home_address;
+    rr->home_agent = _mn->_home_agent;
     rr->care_of_address = IPAddress(0); //fixed for now
     rr->identification = htons(0);
     
