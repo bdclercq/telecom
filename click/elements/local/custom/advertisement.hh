@@ -2,6 +2,7 @@
 #define ADVERTISEMENT_HH
 #include <click/element.hh>
 #include <click/timer.hh>
+#include <click/vector.hh>
 
 CLICK_DECLS
 
@@ -25,7 +26,7 @@ struct advertisement_header_extension {
     uint8_t length;
     uint16_t seq_nr;
     uint16_t lifetime;
-    uint16_t flags;
+    Vector<bool> flags;
     uint8_t reserved;
 	//advertised care-of address provided by foreign agent
     uint32_t address;
@@ -55,7 +56,7 @@ class Advertisement : public Element {
         IPAddress _careOfAddress;
 
 		//1/3 of ICMP header lifetime
-        int _interval;
+        double _interval;
         Timer _timer;
 
 		//count of messages sent since initialization
@@ -64,8 +65,7 @@ class Advertisement : public Element {
 		//advertisement is for a HA or a FA
         bool _HA;
         bool _FA;
-
-		bool _busy;
+	bool _busy;
 
         unsigned _advertisementLifetime;
 

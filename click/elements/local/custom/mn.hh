@@ -2,6 +2,7 @@
 #define CLICK_MNINFO_HH
 
 #include <click/element.hh>
+#include <click/hashmap.hh>
 
 CLICK_DECLS
 
@@ -25,6 +26,8 @@ class MN : public Element {
         bool _connected;
         IPAddress _foreign_agent;
         uint16_t _lifetime;
+
+	HashMap<IPAddress, Packet*> advertisements;
 
 };
 
