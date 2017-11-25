@@ -7,7 +7,7 @@
 #include <click/ipaddress.hh>
 #include <click/timer.hh>
 
-#include "mn.hh"
+#include "mninfo.hh"
 
 CLICK_DECLS
 
@@ -26,7 +26,7 @@ struct RegReqHeader {
 class RegReq : public Element {
 
   private:
-  MN* _mn;
+  MNInfo* _mninfo;
   Timer _timer;
   
   uint64_t _identification;

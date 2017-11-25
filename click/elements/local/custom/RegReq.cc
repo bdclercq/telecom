@@ -21,7 +21,7 @@ int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 	//IPAddress home_agent;
        // IPAddress home_address;
     if (Args(conf, this, errh)
-    .read_mp("MNINFO", ElementCastArg("MNInfo"), _mn)
+    .read_mp("MNINFO", ElementCastArg("MNInfo"), _mninfo)
     .read_mp("LIFETIME", _lifetime)
 	.complete() < 0)
 	return -1;
@@ -61,8 +61,8 @@ Packet* RegReq::make_packet(){
     
     rr->flags = flagint;
     rr->lifetime = htons(_lifetime);
-    rr->home_address = _mn->_home_address;
-    rr->home_agent = _mn->_home_agent;
+    rr->home_address = _mninfo->_home_address;
+    rr->home_agent = _mninfo->_home_agent;
     rr->care_of_address = IPAddress(0); //fixed for now
     rr->identification = htons(0);
     
