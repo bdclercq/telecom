@@ -21,7 +21,7 @@ int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 	IPAddress home_agent;
         IPAddress home_address;
     if (Args(conf, this, errh)
-    .read_mp("HOMAGENT", home_agent).read_mp("HOMEADDRESS", home_address)
+    .read_mp("MNINFO", ElementCastArg("MNInfo"), _mninfo)
     .read_mp("LIFETIME", _lifetime)
 	.complete() < 0)
 	return -1;
