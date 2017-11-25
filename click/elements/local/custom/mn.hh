@@ -10,7 +10,7 @@ class MN : public Element {
 
     public:
         MN();
-	MN(IPAddress,IPAddress);
+	    MN(IPAddress,IPAddress);
         ~MN();
         
         const char *class_name() const { return "MN"; }
