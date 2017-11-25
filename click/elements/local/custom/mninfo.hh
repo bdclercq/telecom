@@ -2,14 +2,26 @@
 #define CLICK_MNINFO_HH
 
 #include <click/element.hh>
+#include <click/hashmap.hh>
 
 CLICK_DECLS
+
+struct pending {
+
+    IPAddress dest;
+    IPAddress coaddress
+    
+    int id = 0;
+    uint16_t req_lt;
+    uint16_t rem_lt;
+    
+    uint16_t port;
 
 class MNInfo : public Element {
 
     public:
         MNInfo();
-	MNInfo(IPAddress,IPAddress);
+	    MNInfo(IPAddress,IPAddress);
         ~MNInfo();
         
         const char *class_name() const { return "MNInfo"; }
@@ -23,6 +35,9 @@ class MNInfo : public Element {
         bool _connected;
         IPAddress _foreign_agent;
         uint16_t _lifetime;
+        
+        HashMap<IPAddress, Packet*> _advertisements;
+        Vector<request> pending;
 
 };
 

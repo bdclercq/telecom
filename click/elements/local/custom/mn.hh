@@ -1,5 +1,5 @@
-#ifndef CLICK_MNINFO_HH
-#define CLICK_MNINFO_HH
+#ifndef CLICK_MN_HH
+#define CLICK_MN_HH
 
 #include <click/element.hh>
 #include <click/hashmap.hh>

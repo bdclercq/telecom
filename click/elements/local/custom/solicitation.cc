@@ -18,9 +18,9 @@ Solicitation::~Solicitation()
 int Solicitation::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 if (Args(conf, this, errh)
-    .read_mp("MNINFO", ElementCastArg("MNInfo"), _mn)
-    .read_mp("SRCIP", _srcIp)
-	.read_mp("MAXRETRIES", _maxRetries)
+    .read_mp("MNINFO", ElementCastArg("MNInfo"), _mninfo)
+    .read_mp("SRCIP", _src_address)
+	.read_mp("MAXRETRIES", _max_try)
 	.complete() < 0)
 	return -1;
 
@@ -31,44 +31,50 @@ if (Args(conf, this, errh)
 
 void Solicitation::run_timer(Timer* timer)
 {
-    // Don't do anything when it isn't needed yet
-    if (_mn->_connected || !_mn->advertisements.empty()){
-        _messagesSendInRow = 0;
+    // Indien de mobile node reeds verbonden is; doe niets
+    // Indien er reeds advertisements zijn; doe niets
+    if (_mninfo->_connected || !_mninfo->advertisements.empty()) {
+    
+        _consequent_mesages = 0;
         timer->schedule_after_msec(1000);
         return;
+        
     }
 
-    // If no router responds after a number of messages than stop sending messages
-    if (_messagesSendInRow >= _maxRetries){
+    // Na een gespecifieerd aantal pogingen, stoppen we met een agent te vinden
+    if (_messagesSendInRow >= _maxRetries) {
+    
         timer->schedule_after_msec(1000);
         return;
+        
     }
 
-    _messagesSendInRow++;
+    _consequent_messages++;
 
-    int packetsize = sizeof(click_ip) + sizeof(solicitation_header);
+    int packetsize = sizeof(click_ip) + sizeof(solicitation_h);
     int headroom = sizeof(click_ether);
+    
     WritablePacket* packet = Packet::make(headroom, 0, packetsize, 0);
-
     memset(packet->data(), 0, packet->length());
 
+
+    //solicitations hebben een ttl van 1!
     click_ip* iph = (click_ip*)packet->data();
     iph->ip_v = 4;
     iph->ip_hl = 5;
     iph->ip_tos = 0;
     iph->ip_len = htons(packetsize);
-    iph->ip_ttl = 1; // TTL must be 1 in solicitation
-    iph->ip_p = 1; // protocol = ICMP
+    iph->ip_ttl = 1;
+    iph->ip_p = 1;
     iph->ip_src = _srcIp;
     iph->ip_dst.s_addr = 0xffffffff;
 
     packet->set_dst_ip_anno(iph->ip_dst);
 
-    solicitation_header* ash = (solicitation_header*)(iph + 1);
-    ash->type = 10; // Agent solicitation
+    solicitation_h* ash = (solicitation_h*)(iph + 1);
+    ash->type = 10;
     ash->code = 0;
 
-    // Calculate the header checksums
     iph->ip_sum = click_in_cksum((unsigned char*)packet->data(), sizeof(click_ip));
     ash->checksum = click_in_cksum((unsigned char*)ash, packetsize - sizeof(click_ip));
 

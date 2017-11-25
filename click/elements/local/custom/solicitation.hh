@@ -7,6 +7,14 @@
 
 CLICK_DECLS
 
+struct solicitation_h {
+    uint8_t     type;
+    uint8_t     code;
+    uint16_t    checksum;
+    uint8_t     addresses;
+};
+
+
 class Solicitation : public Element {
     public:
         Solicitation();
@@ -21,19 +29,12 @@ class Solicitation : public Element {
         void run_timer(Timer*);
 
     private:
-        MN* _mn;
-        IPAddress _srcIp;
+        MNInfo* _mninfo;
+        IPAddress _src_address;
         Timer _timer;
 
-        unsigned int _messagesSendInRow;
-        unsigned int _maxRetries = 5;
-};
-
-struct solicitation_header {
-    uint8_t     type;           /* 0     Type = 10 (Agent Solicitation) */
-    uint8_t     code;           /* 1     Code = 0 */
-    uint16_t    checksum;       /* 2-3   Checksum */
-    uint8_t     addresses;      /* 4-7   Reserved */
+        unsigned int _consequent_messages;
+        unsigned int _max_try = 5;
 };
 
 CLICK_ENDDECLS

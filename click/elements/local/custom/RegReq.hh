@@ -11,7 +11,7 @@
 
 CLICK_DECLS
 
-struct RegReqHeader {
+struct regreq_h {
 
     uint8_t type;
     uint8_t flags;

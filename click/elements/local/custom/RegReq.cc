@@ -18,15 +18,12 @@ RegReq::~RegReq() {}
 
 int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 {
-	//IPAddress home_agent;
-       // IPAddress home_address;
+
     if (Args(conf, this, errh)
     .read_mp("MNINFO", ElementCastArg("MNInfo"), _mninfo)
     .read_mp("LIFETIME", _lifetime)
 	.complete() < 0)
 	return -1;
-
-	//_mn = new MN(home_agent, home_address);
 	
     _timer.initialize(this);
     _timer.schedule_after_msec(1000);
@@ -36,8 +33,8 @@ int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 
 Packet* RegReq::make_packet(){
 
-    int headroom = sizeof(click_ip) + sizeof(click_ether) + sizeof(RegReqHeader);
-    int p_size = sizeof(RegReqHeader);
+    int headroom = sizeof(click_ip) + sizeof(click_ether) + sizeof(regreq_h);
+    int p_size = sizeof(regreq_h);
     WritablePacket* q = Packet::make(headroom, 0, p_size, 0);
     
     if (!q)
@@ -45,11 +42,11 @@ Packet* RegReq::make_packet(){
         
     memset(q->data(), '\0', q->length());
     
-    RegReqHeader* rr = (RegReqHeader*)q->data();
+    regreq_h* rr = (regreq_h*)q->data();
     
     rr->type = 1;
     
-    //all fixed for now
+    //allemaal vast voor nu, enkel de eerste zou 'zetbaar' moeten zijn...
     uint8_t flagint = (0 << 7)
                     + (0 << 6)
                     + (0 << 5)
@@ -63,7 +60,7 @@ Packet* RegReq::make_packet(){
     rr->lifetime = htons(_lifetime);
     rr->home_address = _mninfo->_home_address;
     rr->home_agent = _mninfo->_home_agent;
-    rr->care_of_address = IPAddress(0); //fixed for now
+    rr->care_of_address = IPAddress(0); //addressen zijn voorlopig hardcoded
     rr->identification = htons(0);
     
     return q;
