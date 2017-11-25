@@ -22,6 +22,20 @@ int HA::configure(Vector<String> &conf, ErrorHandler *errh) {
     return 0;
 }
 
+void HA::push(int, Packet* packet) {
+
+    for (unsigned int i = 0; i < _mobility_bindings.size(); ++i)
+    {
+        if (_mobility_bindings[i].address == ((click_ip*)packet->data())->ip_dst)
+        {
+            output(1).push(packet);
+            return;
+        }
+    }
+	//packet is not for a mobile node connected to this home agent
+    output(0).push(packet);
+}
+
 CLICK_DECLS
 
 EXPORT_ELEMENT(HA)

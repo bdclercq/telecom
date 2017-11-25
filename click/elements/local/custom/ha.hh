@@ -21,13 +21,15 @@ public:
 	~HA();
 
 	const char *class_name() const { return "HA"; }
-	const char *port_count() const { return "0/0"; }
+	const char *port_count() const { return "1/2"; }
+	const char *processing() const { return PUSH; }
 
 	int configure(Vector<String>&, ErrorHandler*);
+	void push(int, Packet*);
 
 	IPAddress _address;
 	//mobility binding list
-	Vector<mobile_info> mobility_bindings;
+	Vector<mobile_info> _mobility_bindings;
 };
 
 CLICK_ENDDECLS

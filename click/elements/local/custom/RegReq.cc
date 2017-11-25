@@ -36,7 +36,7 @@ int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
 
 Packet* RegReq::make_packet(){
 
-    int headroom = sizeof(click_ether);
+    int headroom = sizeof(click_ip) + sizeof(click_ether) + sizeof(RegReqHeader);
     int p_size = sizeof(RegReqHeader);
     WritablePacket* q = Packet::make(headroom, 0, p_size, 0);
     

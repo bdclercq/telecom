@@ -29,6 +29,15 @@ int MN::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 }
 
+void MN::push(int, Packet* packet) {
+
+    // Send the package to the correct location
+    if (_connected)
+        packet->set_dst_ip_anno(_foreign_agent);
+
+    output(0).push(packet);
+}
+
 CLICK_ENDDECLS
 
 EXPORT_ELEMENT(MN)
