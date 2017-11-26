@@ -6,7 +6,7 @@
 #include <clicknet/ip.h>
 #include <clicknet/ether.h>
 #include <click/glue.hh>
-#include <click/standard/alignmentinfo.hh>
+
 
 #include "RegReq.hh"
 
@@ -16,14 +16,13 @@ RegReq::RegReq() : _timer(this), _lifetime(1800) {}
 
 RegReq::~RegReq() {}
 
-int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
-{
+int RegReq::configure(Vector<String> &conf, ErrorHandler *errh) {
 
     if (Args(conf, this, errh)
     .read_mp("MNINFO", ElementCastArg("MNInfo"), _mninfo)
     .read_mp("LIFETIME", _lifetime)
 	.complete() < 0)
-	return -1;
+	    return -1;
 	
     _timer.initialize(this);
     _timer.schedule_after_msec(1000);
@@ -31,7 +30,9 @@ int RegReq::configure(Vector<String> &conf, ErrorHandler *errh)
     return 0;
 }
 
-Packet* RegReq::make_packet(){
+Packet* RegReq::make_packet() {
+
+    //todo:: make custom ip and icmp encap, to set fiels to our own values
 
     int headroom = sizeof(click_ip) + sizeof(click_ether) + sizeof(regreq_h);
     int p_size = sizeof(regreq_h);
@@ -67,8 +68,7 @@ Packet* RegReq::make_packet(){
 
 }
 
-void RegReq::run_timer(Timer *timer)
-{
+void RegReq::run_timer(Timer *timer) {
     if (Packet *q = make_packet()) {
         output(0).push(q);
         _timer.reschedule_after_msec(1000);
