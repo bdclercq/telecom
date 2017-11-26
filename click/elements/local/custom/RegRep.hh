@@ -2,12 +2,13 @@
 #define CLICK_REGREP_HH
 
 #include <click/element.hh>
+#include "ha.hh"
 
 CLICK_DECLS
 
 struct regrep_h {
 
-    unit8_t type;
+    uint8_t type;
     uint8_t code;
     uint16_t lifetime;
     IPAddress home_address;
@@ -33,7 +34,7 @@ class RegRep : public Element {
     
     private:
     
-    HA* _homeagent;
+    HA* _home_agent;
     
     int check_acceptable(Packet* p);    
 

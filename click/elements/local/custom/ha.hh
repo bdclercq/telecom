@@ -28,8 +28,7 @@ public:
 	void push(int, Packet*);
 
 	IPAddress _address;
-	//mobility binding list
-	Vector<mobile_info> _mobility_bindings;
+	Vector<mobile_info> _mobility_bindings; //mobility binding list
 };
 
 CLICK_ENDDECLS
