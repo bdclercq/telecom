@@ -8,7 +8,7 @@
 #include "solicitation.hh"
 
 CLICK_DECLS
-Solicitation::Solicitation() : _timer(this), _messagesSendInRow(0)
+Solicitation::Solicitation() : _timer(this), _consequent_messages(0)
 {
 }
 
@@ -20,7 +20,7 @@ int Solicitation::configure(Vector<String> &conf, ErrorHandler *errh) {
 if (Args(conf, this, errh)
     .read_mp("MNINFO", ElementCastArg("MNInfo"), _mninfo)
     .read_mp("SRCIP", _src_address)
-	.read_mp("MAXRETRIES", _max_try)
+	.read_mp("MAXRETRIES", _max_tries)
 	.complete() < 0)
 	return -1;
 
@@ -33,16 +33,16 @@ void Solicitation::run_timer(Timer* timer)
 {
     // Indien de mobile node reeds verbonden is; doe niets
     // Indien er reeds advertisements zijn; doe niets
-    if (_mninfo->_connected || !_mninfo->advertisements.empty()) {
+    if (_mninfo->_connected || !_mninfo->_advertisements.empty()) {
     
-        _consequent_mesages = 0;
+        _consequent_messages = 0;
         timer->schedule_after_msec(1000);
         return;
         
     }
 
     // Na een gespecifieerd aantal pogingen, stoppen we met een agent te vinden
-    if (_messagesSendInRow >= _maxRetries) {
+    if (_consequent_messages >= _max_tries) {
     
         timer->schedule_after_msec(1000);
         return;
@@ -66,7 +66,7 @@ void Solicitation::run_timer(Timer* timer)
     iph->ip_len = htons(packetsize);
     iph->ip_ttl = 1;
     iph->ip_p = 1;
-    iph->ip_src = _srcIp;
+    iph->ip_src = _src_address;
     iph->ip_dst.s_addr = 0xffffffff;
 
     packet->set_dst_ip_anno(iph->ip_dst);

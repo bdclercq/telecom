@@ -4,9 +4,11 @@
 #include <click/timer.hh>
 #include <click/vector.hh>
 
+#include "mninfo.hh"
+
 CLICK_DECLS
 
-struct advertisement_header {
+struct advertisement_h {
 	//rfc 1256: ICMP Router Discovery Messages --> type == 9 and code == 0
     uint8_t     type;
     uint8_t     code;
@@ -21,12 +23,12 @@ struct advertisement_header {
     uint32_t    preferences;
 };
 
-struct advertisement_header_extension {
+struct advertisement_h_e {
     uint8_t type ;
     uint8_t length;
     uint16_t seq_nr;
     uint16_t lifetime;
-    Vector<bool> flags;
+    uint8_t flags;
     uint8_t reserved;
 	//advertised care-of address provided by foreign agent
     uint32_t address;
@@ -48,12 +50,9 @@ class Advertisement : public Element {
 	private:
 
 		void sendPacket(IPAddress destinationIP);
-
-		//dst address must be the same as src that prompted the advertisement
-        IPAddress _srcIp;
-
-		//address used in extension only
-        IPAddress _careOfAddress;
+		
+        IPAddress _srcIp; //dst address must be the same as src that prompted the advertisement
+        IPAddress _careOfAddress; //address used in extension only
 
 		//1/3 of ICMP header lifetime
         double _interval;
@@ -65,7 +64,7 @@ class Advertisement : public Element {
 		//advertisement is for a HA or a FA
         bool _HA;
         bool _FA;
-	bool _busy;
+	    bool _busy;
 
         unsigned _advertisementLifetime;
 

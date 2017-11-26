@@ -6,16 +6,17 @@
 
 CLICK_DECLS
 
-struct pending {
+struct request {
 
     IPAddress dest;
-    IPAddress coaddress
+    IPAddress coaddress;
     
     int id = 0;
     uint16_t req_lt;
     uint16_t rem_lt;
     
     uint16_t port;
+};
 
 class MNInfo : public Element {
 

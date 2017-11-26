@@ -3,7 +3,7 @@
 #include <click/element.hh>
 #include <click/timer.hh>
 
-#include "mn.hh"
+#include "mninfo.hh"
 
 CLICK_DECLS
 
@@ -34,7 +34,7 @@ class Solicitation : public Element {
         Timer _timer;
 
         unsigned int _consequent_messages;
-        unsigned int _max_try = 5;
+        unsigned int _max_tries = 5;
 };
 
 CLICK_ENDDECLS
