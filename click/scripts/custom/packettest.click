@@ -1,13 +1,13 @@
 AddressInfo(sourceAddr 10.0.0.1 1A:7C:3E:90:78:41)
 AddressInfo(responderAddr 10.0.0.2 1A:7C:3E:90:78:42)
 
-//source::ICMPPingSource(sourceAddr, responderAddr, INTERVAL 0.2, LIMIT 20);
-source::RegReq(0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 10.0.0.1, 10.0.0.1, 10.0.0.1, 0);
+osource::ICMPPingSource(sourceAddr, responderAddr, INTERVAL 0.2, LIMIT 20);
+info::MNInfo(10.0.0.2, 10.0.0.3);
+source::RegReq(info, 1800);
 responder::ICMPPingResponder;
 switch::ListenEtherSwitch
-
-udpencap::UDPIPEncap(sourceAddr, 25565, responderAddr, 25565);
-//etherencap::EtherEncap(0x0800, sourceAddr, responderAddr);
+//udpencap::UDPIPEncap(sourceAddr, 434, responderAddr, 434);
+copy::Tee(2);
 
 elementclass Router { $src | 
 	
@@ -19,6 +19,7 @@ elementclass Router { $src |
 		-> [0]querier;
 
 	querier
+	    //-> ToDump(switch.dump)
 		-> [0]output;
 
 	input [1]
@@ -43,11 +44,12 @@ elementclass Router { $src |
 		-> Discard;
 }
 
-source
-    -> udpencap
-    //-> etherencap
-	-> [0] sourceRouter::Router(sourceAddr) [0]
-	-> [0] switch
+sourceRouter::Router(sourceAddr)
+
+osource
+    -> source
+    //-> udpencap
+	-> copy
 	
 switch[0]
 	-> [1] sourceRouter [1]
@@ -62,8 +64,14 @@ switch[1]
 	-> responder
 
 switch[2]
-	-> ToDump(switch.dump)
+	//-> ToDump(switch.dump)
 	-> Discard
 
+copy[0]
+    -> [0] sourceRouter [0]
+	-> [0] switch
 
+copy[1]
+    -> EtherEncap(0x0800, 1:1:1:1:1:1, 2:2:2:2:2:2)
+    -> ToDump(switch.dump);
 

@@ -32,6 +32,8 @@ class RegReq : public Element {
   uint64_t _identification;
   
   uint16_t _lifetime;
+  
+  uint32_t _sequence = 0;
 
  public:
 
@@ -47,6 +49,7 @@ class RegReq : public Element {
 
     void run_timer(Timer *);
   Packet* make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddress);
+  void push(int, Packet *p);
 
 };
 

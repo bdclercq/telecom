@@ -10,6 +10,8 @@
 #include "RegRep.hh"
 #include "RegReq.hh"
 
+#include <sstream>
+
 CLICK_DECLS
 
 RegRep::RegRep() {}
@@ -91,16 +93,18 @@ void RegRep::push(int, Packet *q) {
             rep->type = 3; //reply
             rep->code = acceptCode;
             rep->home_address = req->home_address;
-            rep->identification = 0;
+            rep->identification = htons(0);
             rep->home_agent = req->home_agent;
             
             udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
             
             if (req->home_address == req->care_of_address) {
                 output(0).push(p);
+                click_chatter("rep0");
             }
             else {
                 output(1).push(p);
+                click_chatter("rep1");
             }
         } 
     }
