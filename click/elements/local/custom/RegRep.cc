@@ -42,6 +42,7 @@ void RegRep::push(int, Packet *q) {
         if (acceptCode == 0 or acceptCode == 1) {
         
             //todo:: check if the home address is the co address, if so; remove the info that this node is on a foreign network
+            
             if (req->home_address == req-> care_of_address) {}
             
             //else add it to the entries of 
@@ -92,7 +93,9 @@ void RegRep::push(int, Packet *q) {
             regrep_h* rep = (regrep_h*)(udp + 1);
             rep->type = 3; //reply
             rep->code = acceptCode;
+            rep->lifetime = 1800;
             rep->home_address = req->home_address;
+            //todo:: set effective identification
             rep->identification = htons(0);
             rep->home_agent = req->home_agent;
             

@@ -83,8 +83,6 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     udp->uh_dport = htons(434);
     udp->uh_ulen = htons(q->length() - sizeof(click_ip));
     
-    udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
-    
     //request fields
     regreq_h* rr = (regreq_h*)(udp + 1);
     
@@ -105,7 +103,10 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     rr->home_address = _mninfo->_home_address;
     rr->home_agent = _mninfo->_home_agent;
     rr->care_of_address = coaddress; //addressen zijn voorlopig hardcoded
+    //todo:: set effective identification
     rr->identification = htons(0);
+    
+    udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
     
     return q;
 
