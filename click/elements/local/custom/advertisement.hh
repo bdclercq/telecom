@@ -31,7 +31,7 @@ struct advertisement_h_e {
     uint8_t flags;
     uint8_t reserved;
 	//advertised care-of address provided by foreign agent
-    uint32_t address;
+    IPAddress address;
 };
 
 class Advertisement : public Element {

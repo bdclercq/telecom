@@ -18,7 +18,7 @@ class MN : public Element {
         const char *processing() const { return PUSH; }
         
         int configure(Vector<String>&, ErrorHandler*);
-	void push(int, Packet*);
+	    void push(int, Packet*);
         
         IPAddress _home_agent;
         IPAddress _home_address;
@@ -27,7 +27,7 @@ class MN : public Element {
         IPAddress _foreign_agent;
         uint16_t _lifetime;
 
-	HashMap<IPAddress, Packet*> advertisements;
+	    HashMap<IPAddress, Packet*> advertisements;
 
 };
 

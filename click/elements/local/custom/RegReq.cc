@@ -10,6 +10,7 @@
 
 
 #include "RegReq.hh"
+#include "advertisement.hh"
 
 CLICK_DECLS
 
@@ -123,11 +124,46 @@ void RegReq::run_timer(Timer *timer) {
     }
 }
 
-void RegReq::push(int, Packet* p) {
+void RegReq::push(int, Packet* q) {
 
-    Packet* q = make_packet(IPAddress("20.0.0.0"), 1800, IPAddress("20.0.0.1"));
-    output(0).push(q);
-    click_chatter("req");
+    click_ip* aip = (click_ip*)q->data();
+    advertisement_h* ah = (advertisement_h*)(aip + 1);
+    advertisement_h_e* ahx = (advertisement_h_e*)(ah + 1);
+    
+    IPAddress asrc = aip->ip_src;
+    
+    uint8_t axflags = ahx->flags;
+    bool home = (axflags >> 5) & 1;
+    bool foreign = (axflags >> 4) & 1;
+    
+    //indien de agent zijn address == het address van de home agent van de mobile node
+    if (asrc == _mninfo->_home_agent) {
+    
+        //indien het address van de foreign agent != het address van de home agent van de mobile node
+        //dan adverteert zijn home agent nu, de mobile node is niet langer op reis
+        if (_mninfo->_foreign_agent != _mninfo->_home_agent && home) {
+            
+            _mninfo->_foreign_agent = _mninfo->_home_agent;
+            _mninfo->_lifetime = 0;
+            
+            //deregistreren
+            Packet* p = make_packet(asrc, 0, _mninfo->_home_address);
+            if (p != 0) {
+                output(0).push(p);
+            }
+        }
+    }
+    
+    //de agent is foreign
+    else if (foreign) {
+        IPAddress acoaddr = ahx->address;
+        Packet* p = make_packet(asrc, htons(ahx->lifetime), acoaddr);
+        if (p != 0) {
+            output(0).push(p);
+        }
+    }
+
+    q->kill();
 
 }
 

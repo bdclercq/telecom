@@ -8,7 +8,12 @@ replyer::RegRep(homeAgent);
 
 fakesource::ICMPPingSource(0.1.0.0, 0.2.0.0);
 fakesource2::ICMPPingSource(0.3.0.0, 0.4.0.0);
+advertiser::Advertisement(50.0.0.0, 50.0.0.1, false, true, false, 1800);
 copy::Tee(2);
+copytwo::Tee(2);
+
+fakesource
+    -> Discard;
 
 fakesource2
     -> homeAgent
@@ -19,7 +24,10 @@ homeAgent[0]
 homeAgent[1]
     -> Discard
 
-fakesource
+advertiser
+    -> copytwo
+
+copytwo[1]
     -> requester
     -> copy
     
@@ -34,4 +42,8 @@ replyer[0]
 copy[0]
     -> EtherEncap(0x0800, 1:1:1:1:1:1, 2:2:2:2:2:2)
     -> ToDump(request.dump);
+    
+copytwo[0]
+    -> EtherEncap(0x0800, 1:1:1:1:1:1, 2:2:2:2:2:2)
+    -> ToDump(advertisement.dump);
     
