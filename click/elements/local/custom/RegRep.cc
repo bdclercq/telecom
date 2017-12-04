@@ -50,7 +50,7 @@ void RegRep::push(int, Packet *q) {
                 mobile_info mi;
                 mi.address = IPAddress(req->home_address);
                 mi.careOfAddress = IPAddress(req->care_of_address);
-                mi.identification = 0;
+                mi.identification = req->identification;
                 mi.remainingLifetime = req->lifetime;
                 
                 _home_agent->_mobility_bindings.push_back(mi);
@@ -93,7 +93,7 @@ void RegRep::push(int, Packet *q) {
             rep->type = 3; //reply
             rep->code = acceptCode;
             rep->home_address = req->home_address;
-            rep->identification = htons(0);
+            rep->identification = htonl(req->identification);
             rep->home_agent = req->home_agent;
             
             udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
