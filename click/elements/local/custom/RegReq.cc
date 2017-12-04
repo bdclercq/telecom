@@ -38,10 +38,15 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     //coaddress is the coaddress give via the advertisement
 
     //add the request to pending request of mobile node, via mninfo
+
+    uint64_t ID;
+    *((uint32_t*)&ID) = Timestamp::now().subsec();
+    *(((uint32_t*)&ID)+1) = Timestamp::now_steady().subsec();
+
     request req;
     req.dest = dest;
     req.coaddress = coaddress;
-    req.id = 0;
+    req.id = ID;
     req.req_lt = lifetime;
     req.rem_lt = lifetime;
     req.port = rand() % 65535;
@@ -83,8 +88,6 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     udp->uh_dport = htons(434);
     udp->uh_ulen = htons(q->length() - sizeof(click_ip));
     
-    udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
-    
     //request fields
     regreq_h* rr = (regreq_h*)(udp + 1);
     
@@ -105,8 +108,11 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     rr->home_address = _mninfo->_home_address;
     rr->home_agent = _mninfo->_home_agent;
     rr->care_of_address = coaddress; //addressen zijn voorlopig hardcoded
-    rr->identification = htons(0);
+    rr->identification = htonl(ID);
     
+
+    udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
+
     return q;
 
 }
