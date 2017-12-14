@@ -12,16 +12,10 @@
 
 elementclass Agent {
 	$private_address, $public_address, $gateway |
-	
-	//add advertiser
 
 	// Shared IP input path and routing table
 	ip :: Strip(14)
 		-> CheckIPHeader
-		
-		//add ip classifer, if not port 434 or icmp: continue...
-		-> regs::IPClassifier(src or dst udp port 434 or icmp type unreachable, -)[1]
-		
 		-> rt :: StaticIPLookup(
 					$private_address:ip/32 0,
 					$public_address:ip/32 0,
@@ -34,9 +28,6 @@ elementclass Agent {
 	
 	// Input and output paths for interface 0
 	input
-	
-	    //!!!check if solicitation, if not, continue...
-	    
 		-> HostEtherFilter($private_address)
 		-> private_class :: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800)
 		-> ARPResponder($private_address)
@@ -52,8 +43,6 @@ elementclass Agent {
 	private_class[2]
 		-> Paint(1)
 		-> ip;
-		
-    //!!! if solicitation, sent advertisement...
 
 	// Input and output paths for interface 1
 	input[1]
@@ -76,21 +65,6 @@ elementclass Agent {
 	// Local delivery
 	rt[0]
 		-> [2]output
-		
-		/*
-    //if not port 434 or icmp
-    regs[0]
-        -> Unstrip(14)
-        //-> relay[0]
-        -> MarkIPHeader(0)
-        -> SetIPChecksum
-        -> [0]private_arpq
-        
-    //relay[1]
-        -> Strip(14)
-        -> SetIPChecksum
-        -> rt
-        */
 	
 	// Forwarding paths per interface
 	rt[1]

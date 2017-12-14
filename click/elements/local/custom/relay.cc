@@ -141,7 +141,7 @@ void Relay::run_timer(Timer* timer) {
     
     }
     
-    timer->schedule_after_msec(1000);
+    timer->reschedule_after_msec(1000);
 
 }
 

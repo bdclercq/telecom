@@ -95,7 +95,7 @@ void RegRep::push(int, Packet *q) {
             rep->code = acceptCode;
             rep->lifetime = 1800;
             rep->home_address = req->home_address;
-            rep->identification = htonl(req->identification);
+            rep->identification = req->identification;
             rep->home_agent = req->home_agent;
             
             udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));

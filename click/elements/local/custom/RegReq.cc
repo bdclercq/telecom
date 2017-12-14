@@ -109,7 +109,7 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     rr->home_address = _mninfo->_home_address;
     rr->home_agent = _mninfo->_home_agent;
     rr->care_of_address = coaddress; //addressen zijn voorlopig hardcoded
-    rr->identification = htonl(ID);
+    rr->identification = htonl(Timestamp::now().subsec());
     
 
     udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
@@ -118,13 +118,13 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
 
 }
 
-void RegReq::run_timer(Timer *timer) {
+void RegReq::run_timer(Timer *) {
 
     //todo:: take the information from the agent advertisement from the mninfo
 
     if (Packet* q = make_packet(IPAddress("20.0.0.0"), 1800, IPAddress("20.0.0.1"))) {
-        //output(0).push(q);
-        //click_chatter("req");
+        output(0).push(q);
+        click_chatter("req");
         _timer.reschedule_after_msec(1000);
     }
 }

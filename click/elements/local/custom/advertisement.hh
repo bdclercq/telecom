@@ -67,6 +67,7 @@ class Advertisement : public Element {
 	    bool _busy;
 
         unsigned _advertisementLifetime;
+        unsigned _registrationLifetime;
 
         unsigned _ttl = 1;
 };

@@ -8,7 +8,7 @@ replyer::RegRep(homeAgent);
 
 fakesource::ICMPPingSource(0.1.0.0, 0.2.0.0);
 fakesource2::ICMPPingSource(0.3.0.0, 0.4.0.0);
-advertiser::Advertisement(50.0.0.0, 50.0.0.1, false, true, false, 1800);
+advertiser::Advertisement(50.0.0.0, 50.0.0.1, false, true, false, 1800, 27);
 copy::Tee(2);
 copytwo::Tee(2);
 

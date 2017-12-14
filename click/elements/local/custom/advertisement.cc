@@ -2,9 +2,11 @@
 #include <click/confparse.hh>
 #include <click/error.hh>
 #include <click/args.hh>
+#include <clicknet/ether.h>
+
 #include <time.h>
 #include <stdlib.h>
-#include <clicknet/ether.h>
+
 #include "advertisement.hh"
 
 CLICK_DECLS
@@ -22,7 +24,8 @@ int Advertisement::configure(Vector<String> &conf, ErrorHandler *errh) {
 	.read_mp("HA", _HA)
 	.read_mp("FA", _FA)
 	.read_mp("BUSY", _busy)
-	.read_mp("LIFETIME", _advertisementLifetime)
+	.read_mp("ALIFETIME", _advertisementLifetime)
+	.read_mp("RLIFETIME", _registrationLifetime)
 	.complete() < 0)
 	    return -1;
 
@@ -47,7 +50,7 @@ void Advertisement::run_timer(Timer *) {
 
     sendPacket(IPAddress::make_broadcast());
 
-    _timer.schedule_after_msec((_interval * 1000) + ((rand() % 100) - 50));
+    _timer.reschedule_after_msec((_interval * 1000) + ((rand() % 100) - 50));
 }
 
 void Advertisement::sendPacket(IPAddress destinationIP){
@@ -88,7 +91,7 @@ void Advertisement::sendPacket(IPAddress destinationIP){
     advhx->type = 16;
     advhx->length = 6 + 4 * 1; // 6 bytes + 4 bytes for every ip address, but only one address advertised
     advhx->seq_nr = htons(_sequenceNr);
-    advhx->lifetime = htons(_advertisementLifetime);
+    advhx->lifetime = htons(_registrationLifetime);
 	
     advhx->address = _careOfAddress;// advertised care-of address provided by foreign agent
 	
