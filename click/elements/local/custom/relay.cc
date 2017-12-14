@@ -4,11 +4,12 @@
 #include <clicknet/udp.h>
 #include <clicknet/ether.h>
 #include <clicknet/icmp.h>
-
+#include <click/glue.hh>
+#include <click/args.hh>
 
 #include "relay.hh"
 #include "RegReq.hh"
-#include "ReqRep.hh"
+#include "RegRep.hh"
 
 CLICK_DECLS
 
@@ -38,12 +39,12 @@ void Relay::push(int, Packet* p) {
     
     if (iph->ip_p == 1) {
         click_icmp* icmph = (click_icmp*)(iph + 1);
-        click_ip* origip = (click_ip*)(icmp + 1);
+        click_ip* origip = (click_ip*)(icmph + 1);
         
         uint8_t type = icmph->icmp_type;
         
         if (type == 3) {
-            IPAddress ha = IPAddress(origip->ip_dest);
+            IPAddress ha = IPAddress(origip->ip_dst);
             uint8_t code = icmph->icmp_code;
             uint8_t error;
             
@@ -56,16 +57,16 @@ void Relay::push(int, Packet* p) {
             else
                 error = 88;
                 
-            for (int i = 0; i < _fa.requests.size(); i++) {
+            for (int i = 0; i < _fa->requests.size(); i++) {
             
-                if (_fa.requests[i].home_agent == ha) {
+                if (_fa->requests[i].home_agent == ha) {
                 
-                    IPAddress ipsrc = _fa.requests[i].ip_dst;
-                    IPAddress ipdst = _fa.requests[i].ip_src;
-                    uint16_t udpdst = _fa.requests[i].upd_src;
-                    uint64_t id = _fa.requests[i].id;
+                    IPAddress ipsrc = _fa->requests[i].ip_dst;
+                    IPAddress ipdst = _fa->requests[i].ip_src;
+                    uint16_t udpdst = _fa->requests[i].udp_src;
+                    uint64_t id = _fa->requests[i].id;
                     
-                    _fa->requests.erase(_fa.requests.begin() + _fa.requests[i])
+                    _fa->requests.erase(_fa->requests.begin() + i);
                     
                     Packet* pck = createRep(code, ipsrc, ipdst, udpdst, id, ha);
                     output(0).push(pck);
@@ -101,34 +102,34 @@ void Relay::run_timer(Timer* timer) {
 
     //remove registrations with lifetime < 0
     
-    for (int i = 0; i < _fa.registrations.size(); i++) {
+    for (int i = 0; i < _fa->registrations.size(); i++) {
     
-        if (_fa.registrations[i].second.remaining_lifetime() > 0)
-            _fa.registrations.erase(_fa.registrations.begin() + i);
+        if (_fa->registrations[i].second.remaining_lifetime > 0)
+            _fa->registrations.erase(_fa->registrations.begin() + i);
     
     }
 
     //lower lifetime of registrations
     
-    for (int i = 0; i < _fa.registrations.size(); i++) {
+    for (int i = 0; i < _fa->registrations.size(); i++) {
     
-        if (_fa.registrations[i].second.remaining_lifetime() > 0)
-        _fa.registrations[i].second.remaining_lifetime-;
+        if (_fa->registrations[i].second.remaining_lifetime > 0)
+        _fa->registrations[i].second.remaining_lifetime;
     
     }
     
     //lower liftetime of requests
     
-    for (int i = 0; i < _fa.requests.size(); i++) {
+    for (int i = 0; i < _fa->requests.size(); i++) {
     
-        vEntry* request = &_fa.requests[i];
+        vEntry* request = &_fa->requests[i];
         uint16_t lifetime = ntohs(request->remaining_lifetime);
         
         if (request->requested_lifetime > 0) {
             
             request->remaining_lifetime = htons(--lifetime);
             
-            if (request->requested_liftime - request->remaining_lifetime > 7) { //fa may delete request after more than 7 seconds
+            if (request->requested_lifetime - request->remaining_lifetime > 7) { //fa may delete request after more than 7 seconds
             
                 //todo:: send timeout
                 //_fa.requests.erase(_fa.requests.begin() + i);
@@ -136,7 +137,7 @@ void Relay::run_timer(Timer* timer) {
             }
         }
         else
-            _fa.requests.erase(_fa.requests.begin() + i);                       //delete if lifetime is under zero or lower...
+            _fa->requests.erase(_fa->requests.begin() + i);                       //delete if lifetime is under zero or lower...
     
     }
     
@@ -154,7 +155,7 @@ void Relay::relayReq(Packet* p) {
     uint32_t psize = p->length() - sizeof(click_ether);
     
     //delete is udp checksum is wrong
-    if ((click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)updh, psize - sizeof(click_ip)), iph, psize - sizeof(click_ip)) != 0) && ntohs(updh->uh_sum) != 0) {
+    if ((click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udph, psize - sizeof(click_ip)), iph, psize - sizeof(click_ip)) != 0) && ntohs(udph->uh_sum) != 0) {
     
         p->kill();
         return;
@@ -165,10 +166,10 @@ void Relay::relayReq(Packet* p) {
     bool reject = false;
     
     //reject (66) registration limit is already met
-    if (_registrationLimit > -1 && _fa->current_registrations.size() >= _registrationLimit){
+    if (_registrationLimit > -1 && _fa->registrations.size() >= _registrationLimit){
     
         code = 66;
-        rejected = true;
+        reject = true;
     
     }
     
@@ -178,7 +179,7 @@ void Relay::relayReq(Packet* p) {
     if ((flags & 1) || ((flags >> 2) & 1)) {
     
         code = 70;
-        rejected = true;
+        reject = true;
     
     }
     
@@ -186,7 +187,7 @@ void Relay::relayReq(Packet* p) {
     if (((flags >> 3) & 1) || ((flags >> 4) & 1)) {
     
         code = 70;
-        rejected = true;
+        reject = true;
     
     }
     
@@ -194,15 +195,15 @@ void Relay::relayReq(Packet* p) {
     if (reject) {
     
         IPAddress ips = iph->ip_dst;
-        IPaddress ipd = iph->ip_src;
+        IPAddress ipd = iph->ip_src;
         
         uint16_t udpd = udph->uh_sport;
-        uint16_t id = reqh->id;
+        uint16_t id = reqh->identification;
         
         IPAddress ha = reqh->home_agent;
         
-        Packet* pck = createReply(code, ips, ipd, udpd, id, ha);
-        output(0).push(packet);
+        Packet* pck = createRep(code, ips, ipd, udpd, id, ha);
+        output(0).push(pck);
         
         p->kill();
         return;
@@ -216,7 +217,7 @@ void Relay::relayReq(Packet* p) {
     entry.ip_dst = iph->ip_dst;
     entry.udp_src = ntohs(udph->uh_sport);
     entry.home_agent = reqh->home_agent;
-    entry.id = reqh->id;
+    entry.id = reqh->identification;
     entry.requested_lifetime = ntohs(reqh->lifetime);
     entry.remaining_lifetime = ntohs(reqh->lifetime);
     _fa->requests.push_back(entry);
@@ -225,20 +226,20 @@ void Relay::relayReq(Packet* p) {
     
     WritablePacket* pck = p->uniqueify();
     
-    click_ether* rethh = (click_ehter*) pck->data();
+    click_ether* rethh = (click_ether*) pck->data();
     click_ip* riph = (click_ip*)(rethh + 1);
     click_udp* rudph = (click_udp*)(riph + 1);
     
-    riph->ip_len = htons(psize)
+    riph->ip_len = htons(psize);
     riph->ip_ttl = 64;
     riph->ip_src = _fa->_address;
     riph->ip_dst = reqh->home_agent.in_addr();
     
-    packet->set_dst_ip_anno(iph->ip_dst);
+    pck->set_dst_ip_anno(iph->ip_dst);
     
     rudph->uh_sport = htons(rand() % 65535);
     rudph->uh_dport = udph->uh_dport;
-    rudph->uh_sum = click_in_cksum_pseudohdr(cilck_in_cksum((usigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
+    rudph->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
     
     output(1).push(pck);
     
@@ -249,12 +250,12 @@ void Relay::relayRep(Packet* p) {
     click_ether* ethh = (click_ether*) p->data();
     click_ip* iph = (click_ip*)(ethh + 1);
     click_udp* udph = (click_udp*)(iph + 1);
-    regreq_h* reph = (regrep_h*)(udph + 1);
+    regrep_h* reph = (regrep_h*)(udph + 1);
     
     uint32_t psize = p->length() - sizeof(click_ether);
     
     //delete is udp checksum is wrong
-    if ((click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)updh, psize - sizeof(click_ip)), iph, psize - sizeof(click_ip)) != 0) && ntohs(updh->uh_sum) != 0) {
+    if ((click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udph, psize - sizeof(click_ip)), iph, psize - sizeof(click_ip)) != 0) && ntohs(udph->uh_sum) != 0) {
     
         p->kill();
         return;
@@ -266,9 +267,9 @@ void Relay::relayRep(Packet* p) {
     int iteration = 0;
     for (int i = 0; i < _fa->requests.size(); i++) {
     
-        if (_fa->requests[i].ip_src == reph->home_addr {
-            inlist = true
-            entry = & _fa.request[i];
+        if (_fa->requests[i].ip_src == reph->home_address) {
+            inlist = true;
+            entry = & _fa->requests[i];
             iteration = i;
             break;    
         }
@@ -289,53 +290,53 @@ void Relay::relayRep(Packet* p) {
         
         if (given_lifetime == 0){
         
-            IPAddress home_addr = reph->home_addr;
+            IPAddress home_addr = reph->home_address;
             
             int iter = 0;            
-            for (int i = 0; i < _fa.registrations.size(); i++) {
+            for (int i = 0; i < _fa->registrations.size(); i++) {
             
-                if (_fa.registrations[i].first == home_addr) {
+                if (_fa->registrations[i].first == home_addr) {
                     iter = i;
                 }
             }
             
-            _fa.registrations.erase(_fa.registrations.begin() + iter);
+            _fa->registrations.erase(_fa->registrations.begin() + iter);
         
         }
         else {
         
-            IPAddress home_addr = reph->home_addr;
+            IPAddress home_addr = reph->home_address;
             
-            vEntry ent = *entry
-            ent.remaining_lifetime = reph->lifetime
-            std::pair<IPAddress, vEntry> newpair = std:make_pair(home_addr, ent);
+            vEntry ent = *entry;
+            ent.remaining_lifetime = reph->lifetime;
+            std::pair<IPAddress, vEntry> newpair = std::make_pair(home_addr, ent);
         }
     }
     
     //delete from pending request
     
-    _fa->requests.erase(iterator);    
+    _fa->requests.erase(_fa->requests.begin() + iteration);    
     
     //relay back
     
     WritablePacket* pck = p->uniqueify();
     
-    click_ether* rethh = (click_ehter*) pck->data();
+    click_ether* rethh = (click_ether*) pck->data();
     click_ip* riph = (click_ip*)(rethh + 1);
     click_udp* rudph = (click_udp*)(riph + 1);
     
-    riph->ip_len = htons(psize)
+    riph->ip_len = htons(psize);
     riph->ip_ttl = 64;
     riph->ip_src = _fa->_address;
-    riph->ip_dst = reqh->home_agent.in_addr();
+    riph->ip_dst = reph->home_agent.in_addr();
     
-    packet->set_dst_ip_anno(iph->ip_dst);
+    pck->set_dst_ip_anno(iph->ip_dst);
     
     rudph->uh_sport = htons(rand() % 65535);
     rudph->uh_dport = udph->uh_dport;
-    rudph->uh_sum = click_in_cksum_pseudohdr(cilck_in_cksum((usigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
+    rudph->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
     
-    packet->pull(14)
+    pck->pull(14);
     output(1).push(pck);
 }
 
@@ -346,7 +347,7 @@ Packet* Relay::createRep(uint8_t code, IPAddress ips, IPAddress ipd, uint16_t ud
     WritablePacket* p = Packet::make(headroom, 0, psize, 0);
     
     if (!p)
-        return;
+        return 0;
         
     memset(p->data(), 0, p->length());
     
@@ -358,11 +359,11 @@ Packet* Relay::createRep(uint8_t code, IPAddress ips, IPAddress ipd, uint16_t ud
     ip->ip_len = htons(psize);
     ip->ip_ttl = 64;
     ip->ip_p = 17; //udp
-    ip->ip_src = ip_src;
-    ip->ip_dst = ip_dst;
+    ip->ip_src = ips;
+    ip->ip_dst = ipd;
     ip->ip_sum = click_in_cksum((unsigned char*) ip, sizeof(click_ip));
     
-    p->set_dst_ip_anno(ip_dst);
+    p->set_dst_ip_anno(ipd);
 
     //udp fields
     click_udp* udp = (click_udp*)(ip + 1);

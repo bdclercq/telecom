@@ -3,6 +3,7 @@
 
 #include <click/element.hh>
 #include <click/timer.hh>
+#include <click/atomic.hh>
 #include <click/ipaddress.hh>
 #include "fa.hh"
 
@@ -29,7 +30,7 @@ class Relay : public Element {
         int _registrationLimit;
         
         void relayReq(Packet* p);
-        void relayRep(PAcket* p);
+        void relayRep(Packet* p);
         Packet* createRep(uint8_t code, IPAddress ips, IPAddress ipd, uint16_t udpd, uint64_t id, IPAddress home_agent);
         
 

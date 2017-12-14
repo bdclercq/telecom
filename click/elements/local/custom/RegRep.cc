@@ -87,7 +87,7 @@ void RegRep::push(int, Packet *q) {
             click_udp* udp = (click_udp*)(ip + 1);
             udp->uh_sport = rudp->uh_dport;
             udp->uh_dport = rudp->uh_sport;
-            udp->uh_ulen = htons(q->length() - sizeof(click_ip));
+            udp->uh_ulen = htons(p->length() - sizeof(click_ip));
             
             //reply fields
             regrep_h* rep = (regrep_h*)(udp + 1);
