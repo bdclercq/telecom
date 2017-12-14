@@ -47,7 +47,7 @@ class RegReq : public Element {
 
   int configure(Vector<String> &, ErrorHandler *) CLICK_COLD;
 
-    void run_timer(Timer *);
+  void run_timer(Timer *);
   Packet* make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddress);
   void push(int, Packet *p);
 
