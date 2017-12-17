@@ -14,15 +14,25 @@
 
 elementclass MobileNode {
 	$address, $gateway, $home_agent |
+	
+	Info :: MNInfo($gateway, $addr_info)
 
 	// Shared IP input path
 	ip :: Strip(14)
 		-> CheckIPHeader
+		
+		//add ip classifer, if not port 434 or icmp: continue...
+		-> regs::IPClassifier(src or dst udp port 434, -)[1]
+		
 		-> rt :: LinearIPLookup(
 			$address:ip/32 0,
 			$address:ipnet 1,
 			0.0.0.0/0 $gateway 1)
 		-> [1]output;
+		
+	regs[0]
+	    //-> register node
+	    -> requester :: RegReq(Info)
 
 	rt[1]	-> ipgw :: IPGWOptions($address)
 		-> FixIPSrc($address)
@@ -50,5 +60,10 @@ elementclass MobileNode {
 		-> [1]arpq;
 
 	in_cl[2]
+	    -> Paint(1)
 		-> ip;
+		
+	//solicitation
+	Solicitation(Info, $addr_info:ip)
+	    ->arpq;
 }

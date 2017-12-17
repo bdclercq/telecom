@@ -12,10 +12,18 @@
 
 elementclass Agent {
 	$private_address, $public_address, $gateway |
+	
+	Agent :: HA($private_address)
+	
+	Advertiser :: Advertisement($private_address, $public_address, true, false, false, 27, 100)
 
 	// Shared IP input path and routing table
 	ip :: Strip(14)
 		-> CheckIPHeader
+		
+		//add ip classifer, if not port 434 or icmp: continue...
+		-> regs::IPClassifier(src or dst udp port 434, -)[1]
+		
 		-> rt :: StaticIPLookup(
 					$private_address:ip/32 0,
 					$public_address:ip/32 0,
@@ -28,6 +36,10 @@ elementclass Agent {
 	
 	// Input and output paths for interface 0
 	input
+	
+	    //!!!check if solicitation, if not, continue...
+	    -> checkSolicitation :: CheckSolicitation[1] 
+	
 		-> HostEtherFilter($private_address)
 		-> private_class :: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800)
 		-> ARPResponder($private_address)
@@ -43,9 +55,11 @@ elementclass Agent {
 	private_class[2]
 		-> Paint(1)
 		-> ip;
+		
+	checkSolicitation[0] -> Advertiser
 
 	// Input and output paths for interface 1
-	input[1]
+	input[1]	
 		-> HostEtherFilter($public_address)
 		-> public_class :: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800)
 		-> ARPResponder($public_address)
@@ -74,7 +88,19 @@ elementclass Agent {
 		-> FixIPSrc($private_address)
 		-> private_ttl :: DecIPTTL
 		-> private_frag :: IPFragmenter(1500)
+		-> Agent[0]
 		-> private_arpq;
+		
+	Agent[1]
+	    // encapsulator
+	    -> public_arpq;
+	    
+	regs[0]
+	    -> replier :: RegRep(Agent)[0]
+	    -> private_arpq;
+	    
+	replier[1]
+	    -> public_arpq;
 	
 	private_paint[1]
 		-> ICMPError($private_address, redirect, host)
@@ -117,4 +143,7 @@ elementclass Agent {
 	public_frag[1]
 		-> ICMPError($public_address, unreachable, needfrag)
 		-> rt;
+		
+	Advertiser
+	    -> private_arpq;
 }
