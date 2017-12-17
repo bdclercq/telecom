@@ -17,11 +17,11 @@ Encapsulator::~Encapsulator()
 
 int Encapsulator::configure(Vector<String> &conf, ErrorHandler *errh) {
 
-    if (cp_va_kparse(conf, this, errh,
-                     "HA", ElementCastArg("HA"), _ha,
-                     "SRC_IP", _srcIp,
-                     cpEnd) < 0)
-        return -1;
+if (Args(conf, this, errh)
+    .read_mp("HA", ElementCastArg("HA"), _ha)
+    .read_mp("SRC_IP", _srcIp)
+	.complete() < 0)
+	    return -1;
 
     return 0;
 }
