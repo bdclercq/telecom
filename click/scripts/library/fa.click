@@ -98,7 +98,7 @@ elementclass Agent {
 	
 	// Forwarding paths per interface
 	rt[1]
-		-> DropBroadcasts
+	    -> DropBroadcasts
 		-> private_paint :: PaintTee(1)
 		-> private_ipgw :: IPGWOptions($private_address)
 		-> FixIPSrc($private_address)

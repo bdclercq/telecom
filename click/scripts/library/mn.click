@@ -32,15 +32,22 @@ elementclass MobileNode {
 		
 	regs[0]
 	    //-> register node
-		->rn::RegNode(Info)
+		-> rn::RegNode(Info)
 	    -> requester :: RegReq(Info)
 
-	rt[1]	-> ipgw :: IPGWOptions($address)
+	rt[1]	
+	    -> processAdvertisements :: ProcessAdvertisements(Info)[0]
+	    -> DropBroadcasts
+	    -> ipgw :: IPGWOptions($address)
 		-> FixIPSrc($address)
 		-> ttl :: DecIPTTL
 		-> frag :: IPFragmenter(1500)
 		-> arpq :: ARPQuerier($address)
 		-> output;
+		
+	processAdvertisements[1]
+	    -> requester
+	    -> arpq
 
 	ipgw[1]	-> ICMPError($address, parameterproblem)
 		-> output;
