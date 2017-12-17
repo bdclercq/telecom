@@ -93,7 +93,7 @@ elementclass Agent {
 		
 	Agent[1]
 	    // encapsulator
-		->encapsulation::Encapsulator(Agent)
+		->encapsulation::Encapsulator(Agent, $public_address)
 	    -> public_arpq;
 	    
 	regs[0]
