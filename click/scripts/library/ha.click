@@ -93,6 +93,7 @@ elementclass Agent {
 		
 	Agent[1]
 	    // encapsulator
+		->encapsulation::Encapsulator(Agent)
 	    -> public_arpq;
 	    
 	regs[0]

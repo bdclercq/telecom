@@ -32,6 +32,7 @@ elementclass MobileNode {
 		
 	regs[0]
 	    //-> register node
+		->rn::RegNode(Info)
 	    -> requester :: RegReq(Info)
 
 	rt[1]	-> ipgw :: IPGWOptions($address)
