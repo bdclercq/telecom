@@ -14,8 +14,7 @@ struct regrep_h {
     IPAddress home_address;
     IPAddress home_agent;
     uint64_t identification;
-
-};
+} __attribute__((packed));
 
 class RegRep : public Element {
 
