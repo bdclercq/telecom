@@ -131,10 +131,10 @@ void RegReq::run_timer(Timer* timer) {
     Vector<Vector<request>> removable;
     for (int i = 0; i < _mninfo->pending.size();) {
     
-        uint16_t lt = noths(_mninfo->pending[i]->rem_lt);
+        uint16_t lt = ntohs(_mninfo->pending[i].rem_lt);
         if (lt > 0) {
         
-            lifetime--;
+            lt--;
             
             _mninfo->pending[i].rem_lt = htons(lt);
             
