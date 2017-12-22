@@ -22,7 +22,7 @@ int Relay::configure(Vector<String> &conf, ErrorHandler *errh) {
     if (Args(conf, this, errh)
     .read_mp("FA", ElementCastArg("FA"), _fa)
     .read_mp("PRIVATEIP", _privateIP)
-    .read_mp("REGLIMIT", _registrationLimit)
+    .read_p("REGLIMIT", _registrationLimit)
 	.complete() < 0)
 	    return -1;
 

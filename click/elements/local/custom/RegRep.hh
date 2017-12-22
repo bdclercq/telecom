@@ -41,4 +41,4 @@ class RegRep : public Element {
 
 CLICK_ENDDECLS
 
-#endif //CLICK_REGREP_HH
+#endif /*CLICK_REGREP_HH*/

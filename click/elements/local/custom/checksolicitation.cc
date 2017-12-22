@@ -2,6 +2,7 @@
 #include <click/confparse.hh>
 #include <click/error.hh>
 #include <clicknet/ether.h>
+#include <click/args.hh>
 
 #include "checksolicitation.hh"
 #include "solicitation.hh"
@@ -14,9 +15,9 @@ CheckSolicitation::~CheckSolicitation() {}
 
 int CheckSolicitation::configure(Vector<String> &conf, ErrorHandler *errh) {
 
-    //if (Args(conf, this, errh)
-    //   .complete() < 0)
-    //    return -1;
+    if (Args(conf, this, errh)
+       .complete() < 0)
+        return -1;
 
     return 0;
 }

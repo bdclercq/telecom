@@ -9,6 +9,7 @@ mobile_node :: MobileNode(mobile_node_address, home_agent_private_address, home_
 
 FromHost(tap0)
 	-> mobile_node
+	-> ToDump(node.dump)
 	-> ToHost(tap0)
 
 mobile_node[1]

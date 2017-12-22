@@ -38,7 +38,7 @@ elementclass Agent {
 	input
 	
 	    //!!!check if solicitation, if not, continue...
-	    -> checkSolicitation :: CheckSolicitation[1] 
+	    -> checkSolicitation :: CheckSolicitation()[1] 
 	
 		-> HostEtherFilter($private_address)
 		-> private_class :: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800)

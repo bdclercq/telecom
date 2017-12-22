@@ -15,7 +15,7 @@ class Relay : public Element {
         Relay();
         ~Relay();
         
-        const char *class_name() const { return "RelayRegistration"; }
+        const char *class_name() const { return "Relay"; }
         const char *port_count() const { return "1/2"; }
         const char *processing() const { return PUSH; }
         

@@ -12,7 +12,7 @@ class CheckSolicitation : public Element {
         CheckSolicitation();
         ~CheckSolicitation();
 
-        const char *class_name() const { return "CheckIfAgentSolicitation"; }
+        const char *class_name() const { return "CheckSolicitation"; }
         const char *port_count() const { return "1/2"; }
         const char *processing() const { return PUSH; }
 
