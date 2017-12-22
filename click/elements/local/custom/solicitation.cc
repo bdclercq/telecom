@@ -20,7 +20,7 @@ int Solicitation::configure(Vector<String> &conf, ErrorHandler *errh) {
 if (Args(conf, this, errh)
     .read_mp("MNINFO", ElementCastArg("MNInfo"), _mninfo)
     .read_mp("SRCIP", _src_address)
-	.read_mp("MAXRETRIES", _max_tries)
+	.read_p("MAXRETRIES", _max_tries)
 	.complete() < 0)
 	return -1;
 

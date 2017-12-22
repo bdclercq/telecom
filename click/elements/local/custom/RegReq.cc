@@ -118,15 +118,39 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
 
 }
 
-void RegReq::run_timer(Timer *) {
+void RegReq::run_timer(Timer* timer) {
 
     //todo:: take the information from the agent advertisement from the mninfo
 
-    if (Packet* q = make_packet(IPAddress("20.0.0.0"), 1800, IPAddress("20.0.0.1"))) {
+    /*if (Packet* q = make_packet(IPAddress("20.0.0.0"), 1800, IPAddress("20.0.0.1"))) {
         output(0).push(q);
         click_chatter("req");
         _timer.reschedule_after_msec(1000);
+    }*/
+    
+    Vector<Vector<request>> removable;
+    for (int i = 0; i < _mninfo->pending.size();) {
+    
+        uint16_t lt = noths(_mninfo->pending[i]->rem_lt);
+        if (lt > 0) {
+        
+            lifetime--;
+            
+            _mninfo->pending[i].rem_lt = htons(lt);
+            
+            ++i;
+        
+        }
+        else {
+        
+            _mninfo->pending.erase(_mninfo->pending.begin() + i);
+            continue;
+        
+        }
     }
+    
+    timer->reschedule_after_msec(1000);
+    
 }
 
 void RegReq::push(int, Packet* q) {

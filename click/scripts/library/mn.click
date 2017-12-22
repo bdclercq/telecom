@@ -15,7 +15,7 @@
 elementclass MobileNode {
 	$address, $gateway, $home_agent |
 	
-	Info :: MNInfo($gateway, $addr_info)
+	Info :: MNInfo($gateway, $address)
 
 	// Shared IP input path
 	ip :: Strip(14)
@@ -32,8 +32,8 @@ elementclass MobileNode {
 		
 	regs[0]
 	    //-> register node
-		-> rn::RegNode(Info)
-	    -> requester :: RegReq(Info)
+		-> rn::RegNode(Info, 3)
+	    -> requester :: RegReq(Info, 1800)
 
 	rt[1]	
 	    -> processAdvertisements :: ProcessAdvertisements(Info)[0]
@@ -72,6 +72,6 @@ elementclass MobileNode {
 		-> ip;
 		
 	//solicitation
-	Solicitation(Info, $addr_info:ip)
+	Solicitation(Info, $address:ip)
 	    ->arpq;
 }

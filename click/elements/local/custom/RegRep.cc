@@ -41,7 +41,22 @@ void RegRep::push(int, Packet *q) {
         
         if (acceptCode == 0 or acceptCode == 1) {
         
-            //todo:: check if the home address is the co address, if so; remove the info that this node is on a foreign network
+            //check if the home address is the co address, if so; remove the info that this node is on a foreign network
+            if (req->home_address == req->care_of_address) {
+            
+                for (int i = 0; i < _home_agent->_mobility_bindings.size();) {
+                
+                    if (_home_agent->_mobility_bindings[i].address == req->home_address) {
+                    
+                        _home_agent->_mobility_bindings.erase(_home_agent->_mobility_bindings.begin() + i);
+                        continue;
+                    
+                    }
+                    
+                    ++i;
+                }
+            
+            }
             
             if (req->home_address == req-> care_of_address) {}
             
@@ -134,7 +149,17 @@ int RegRep::check_acceptable(Packet *p) {
     
     int found = 0;
     
-    //todo:: check if binding is already found...
+    //check if binding is already found...
+    for (int i = 0; i < _home_agent->_mobility_bindings.size(); i++) {
+    
+        if (_home_agent->_mobility_bindings[i].address == req->home_address) {
+        
+            found = 1;
+            break;
+                    
+        }
+    
+    }
     
     //B bit should always be set to zero as broadcasting datagrams is not supported
     if (((flags >> 7) & 1) and (found == 1)) {
