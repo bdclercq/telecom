@@ -60,7 +60,9 @@ elementclass Agent {
     checkSolicitation[0] -> Advertiser
     
     //send advertisements
-    Advertiser[0] -> [0]private_arpq;
+    Advertiser[0] 
+        -> MarkIPHeader
+        -> [0]private_arpq;
 
 	// Input and output paths for interface 1
 	input[1]

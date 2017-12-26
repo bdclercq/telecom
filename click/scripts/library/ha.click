@@ -15,7 +15,7 @@ elementclass Agent {
 	
 	Agent :: HA($private_address)
 	
-	Advertiser :: Advertisement($private_address, $public_address, true, false, false, 27, 100)
+	Advertiser :: Advertisement($private_address, $public_address, true, false, false, 27, 5)
 
 	// Shared IP input path and routing table
 	ip :: Strip(14)
@@ -145,6 +145,8 @@ elementclass Agent {
 		-> ICMPError($public_address, unreachable, needfrag)
 		-> rt;
 		
-	Advertiser
+	Advertiser[0]
+	    -> MarkIPHeader
+	    //-> IPPrint
 	    -> private_arpq;
 }

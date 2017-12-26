@@ -8,8 +8,8 @@ require (library library/mn.click)
 mobile_node :: MobileNode(mobile_node_address, home_agent_private_address, home_agent_public_address);
 
 FromHost(tap0)
+    -> ToDump(mn.pcap)
 	-> mobile_node
-	-> ToDump(node.dump)
 	-> ToHost(tap0)
 
 mobile_node[1]

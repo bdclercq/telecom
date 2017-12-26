@@ -35,8 +35,10 @@ void Solicitation::run_timer(Timer* timer)
     // Indien er reeds advertisements zijn; doe niets
     if (_mninfo->_connected || !_mninfo->_advertisements.empty()) {
     
+        click_chatter(String(_mninfo->_connected).c_str());
+    
         _consequent_messages = 0;
-        timer->schedule_after_msec(1000);
+        timer->reschedule_after_msec(1000);
         return;
         
     }
@@ -44,7 +46,7 @@ void Solicitation::run_timer(Timer* timer)
     // Na een gespecifieerd aantal pogingen, stoppen we met een agent te vinden
     if (_consequent_messages >= _max_tries) {
     
-        timer->schedule_after_msec(1000);
+        timer->reschedule_after_msec(1000);
         return;
         
     }
@@ -52,7 +54,7 @@ void Solicitation::run_timer(Timer* timer)
     _consequent_messages++;
 
     int packetsize = sizeof(click_ip) + sizeof(solicitation_h);
-    int headroom = sizeof(click_ether);
+    int headroom = sizeof(click_ether) + 4;
     
     WritablePacket* packet = Packet::make(headroom, 0, packetsize, 0);
     memset(packet->data(), 0, packet->length());
@@ -80,7 +82,7 @@ void Solicitation::run_timer(Timer* timer)
 
     output(0).push(packet);
 
-    timer->schedule_after_msec(1000);
+    timer->reschedule_after_msec(1000);
 }
 
 CLICK_ENDDECLS

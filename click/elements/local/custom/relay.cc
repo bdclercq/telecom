@@ -34,6 +34,8 @@ int Relay::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void Relay::push(int, Packet* p) {
 
+    click_chatter("WE GOT SOMETHING TO RELAY");
+
     click_ether* ethh = (click_ether*) p->data();
     click_ip* iph = (click_ip*) (ethh + 1);
     
@@ -78,18 +80,22 @@ void Relay::push(int, Packet* p) {
     
     else {
     
+        click_chatter("WE'VE COME THIS FAR, TIME TO SEE WHERE TO SEND");
+    
         uint32_t p_size = p->length() - sizeof(click_ether);
         click_udp* udph = (click_udp*)(iph + 1);
         
         if (p_size == sizeof(click_ip) + sizeof(click_udp) + sizeof(regreq_h)) {
             regreq_h* req = (regreq_h*)(udph + 1);
             if (req->type == 1)
+                click_chatter("TO HOME AGENT");
                 relayReq(p);
         }
         
         else if (p_size == sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h)) {
             regrep_h* rep = (regrep_h*)(udph + 1);
             if (rep->type == 1)
+                click_chatter("TO MOBILE NODE");
                 relayRep(p);
         }
     }
@@ -140,6 +146,8 @@ void Relay::run_timer(Timer* timer) {
             _fa->requests.erase(_fa->requests.begin() + i);                       //delete if lifetime is under zero or lower...
     
     }
+    
+    //click_chatter("RELAY TIMER");
     
     timer->reschedule_after_msec(1000);
 

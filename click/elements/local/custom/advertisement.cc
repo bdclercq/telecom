@@ -10,7 +10,7 @@
 #include "advertisement.hh"
 
 CLICK_DECLS
-Advertisement::Advertisement() : _interval(0), _timer(this), _sequenceNr(0) {
+Advertisement::Advertisement() : _interval(1), _timer(this), _sequenceNr(0) {
     srand(time(NULL));
 }
 
@@ -42,6 +42,7 @@ void Advertisement::push(int, Packet* packet) {
     click_ether* ethh = (click_ether*)packet->data();
     click_ip* iph = (click_ip*)(ethh + 1);
 
+    //click_chatter("WE GOT A SOLICITATION, SEND AN ADVERTISEMENT!!");
     sendPacket(iph->ip_src);
     packet->kill();
 }
@@ -49,14 +50,20 @@ void Advertisement::push(int, Packet* packet) {
 void Advertisement::run_timer(Timer *) {
 
     sendPacket(IPAddress::make_broadcast());
+    
+    int interval = (_interval * 1000) + ((rand() % 100));
+    
+    //if (_FA)
+    //    click_chatter("ADV");
+    //    click_chatter(String(interval).c_str());
 
-    _timer.reschedule_after_msec((_interval * 1000) + ((rand() % 100) - 50));
+    _timer.reschedule_after_msec(interval);
 }
 
 void Advertisement::sendPacket(IPAddress destinationIP){
 
     int packetsize = sizeof(click_ip) + sizeof(advertisement_h) + sizeof(advertisement_h_e);
-    int headroom = sizeof(click_ether);
+    int headroom = sizeof(click_ether) + 4;
     WritablePacket* packet = Packet::make(headroom, 0, packetsize, 0);
 
     memset(packet->data(), 0, packet->length());
@@ -71,7 +78,7 @@ void Advertisement::sendPacket(IPAddress destinationIP){
     iph->ip_ttl = 1;
     iph->ip_p = 1;
     iph->ip_src = _srcIp;
-    iph->ip_dst = _srcIp;
+    iph->ip_dst = destinationIP;
     iph->ip_sum = click_in_cksum((unsigned char*)packet->data(), packet->length());
 
     packet->set_dst_ip_anno(iph->ip_dst);
@@ -114,6 +121,7 @@ void Advertisement::sendPacket(IPAddress destinationIP){
     else
         _sequenceNr = 256;
 
+    //click_chatter("SEND ADVERTISEMENT NOW");
     output(0).push(packet);
 }
 

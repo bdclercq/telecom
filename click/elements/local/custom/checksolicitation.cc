@@ -24,6 +24,8 @@ int CheckSolicitation::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CheckSolicitation::push(int, Packet* packet) {
 
+    //click_chatter("CHECK SOLICITATION");
+
     click_ether* ethh = (click_ether*)packet->data();
     click_ip* iph = (click_ip*)(ethh + 1);
     
@@ -62,6 +64,8 @@ void CheckSolicitation::push(int, Packet* packet) {
                 return;
             
             }
+            
+            //click_chatter("YAY WE ACCEPT THE SOLICIATION");
             
             output(0).push(packet);
             return;

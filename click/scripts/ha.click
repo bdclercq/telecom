@@ -12,7 +12,6 @@ FromHost(tap1)
 	-> ToHost(tap1)
 
 FromHost(tap2)
-    -> ToDump(ha.dump)
 	-> [1]home_agent[1]
 	-> ToHost(tap2)
 

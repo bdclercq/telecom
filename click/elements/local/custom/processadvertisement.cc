@@ -16,6 +16,8 @@ ProcessAdvertisements::~ProcessAdvertisements() {
     for (int i = 0; i < _mninfo->_advertisements.size(); i++) {
     
         //kill all packets in the advertisements of the mninfo
+        for (HashMap<IPAddress, Packet*>::iterator i = _mninfo->_advertisements.begin(); i != _mninfo->_advertisements.end(); ++i)
+        i.pair()->value->kill();
     
     }
 }
@@ -32,13 +34,19 @@ int ProcessAdvertisements::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void ProcessAdvertisements::push(int, Packet* packet) {
 
+    //click_chatter("THIS MIGHT BE AN ADVERTISEMENT");
+
     click_ip* iph = (click_ip*) packet->data();
     
     if (iph->ip_p == 1) {
     
+        //click_chatter("WHATEVER IT IS, ITS CERTAINLY AN ICMP");
+    
         advertisement_h* ah = (advertisement_h*)(iph + 1);
         
         if (ah->type == 9) {
+        
+            //click_chatter("IT IS!!");
         
             uint16_t lsn = -1;
             advertisement_h_e* ahe = (advertisement_h_e*)(ah + 1);
@@ -77,6 +85,7 @@ void ProcessAdvertisements::push(int, Packet* packet) {
                         _mninfo->_advertisements.insert(ah->address, packet->clone());
                         _latestRegAttempt.assign_now();
                         
+                        click_chatter("TIME TO SEND A REQUEST");
                         output(1).push(packet);
                     
                     }

@@ -75,7 +75,7 @@ void RegRep::push(int, Packet *q) {
             
             //make the reply
             
-            int headroom = sizeof(click_ether);
+            int headroom = sizeof(click_ether) + 4;
             int p_size = sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h);
             WritablePacket* p = Packet::make(headroom, 0, p_size, 0);
             

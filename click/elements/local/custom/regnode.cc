@@ -22,10 +22,13 @@ int RegNode::configure(Vector<String> &conf, ErrorHandler *errh) {
         return -1;
 
     _timer.initialize(this);
+    _timer.schedule_after_msec(1000);
     return 0;
 }
 
 void RegNode::push(int, Packet* p) {
+
+    click_chatter("WE ARE REGISTEREING");
 
     click_ip* iph = (click_ip*) p->data();
     click_udp* udph = (click_udp*)(iph + 1);
@@ -64,15 +67,22 @@ void RegNode::push(int, Packet* p) {
     
     }
     
-    //compare id's, if id's do not match, discard packet
+    //todo:: compare id's, if id's do not match, discard packet
     
     uint8_t code = reph->code;
+    uint16_t codestring = reph->code;
+    
+    click_chatter("WE CHECK THE CODE");
     
     if (code == 0 || code == 1) {
     
-        _timer.clear();
+        click_chatter("WE'RE IN");
+    
+        //_timer.clear();
         
         if (iph->ip_src != _mninfo->_home_agent) {
+        
+            click_chatter("EH...");
         
             _mninfo->_connected = true;
             _mninfo->_foreign_agent = recentreq->dest;
@@ -83,6 +93,8 @@ void RegNode::push(int, Packet* p) {
             uint16_t lifetime = recentreq->rem_lt - dec_lifetime;
             
             _mninfo->_lifetime = lifetime;
+            
+            click_chatter("WE GOT THE ADVERTISEMENT, LET'S START THE TIMER");
             
             _timer.schedule_after_msec(1000);
         
@@ -110,7 +122,12 @@ void RegNode::push(int, Packet* p) {
 
 void RegNode::run_timer(Timer* timer) {
 
+    click_chatter("REGNODE TIMER");
+    click_chatter(String(_mninfo->_lifetime).c_str());
+
     if (_mninfo->_lifetime > 0) {
+    
+        click_chatter(String(_mninfo->_lifetime).c_str());
     
         _mninfo->_lifetime--;
         
@@ -126,7 +143,7 @@ void RegNode::run_timer(Timer* timer) {
         }
     }
     
-    _timer.reschedule_after_msec(1000);
+    timer->reschedule_after_msec(1000);
 
 }
 

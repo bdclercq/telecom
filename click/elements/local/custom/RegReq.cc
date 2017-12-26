@@ -120,7 +120,7 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
 
 void RegReq::run_timer(Timer* timer) {
 
-    //todo:: take the information from the agent advertisement from the mninfo
+    //take the information from the agent advertisement from the mninfo
 
     /*if (Packet* q = make_packet(IPAddress("20.0.0.0"), 1800, IPAddress("20.0.0.1"))) {
         output(0).push(q);
@@ -176,8 +176,10 @@ void RegReq::push(int, Packet* q) {
             _mninfo->_lifetime = 0;
             
             //deregistreren
+            
             Packet* p = make_packet(asrc, 0, _mninfo->_home_address);
             if (p != 0) {
+                click_chatter("DEREGISTER REQUEST");
                 output(0).push(p);
             }
         }
@@ -188,6 +190,7 @@ void RegReq::push(int, Packet* q) {
         IPAddress acoaddr = ahx->address;
         Packet* p = make_packet(asrc, htons(ahx->lifetime), acoaddr);
         if (p != 0) {
+            click_chatter("REQUEST!!!");
             output(0).push(p);
         }
     }
