@@ -57,9 +57,6 @@ void RegRep::push(int, Packet *q) {
                 }
             
             }
-            
-            if (req->home_address == req-> care_of_address) {}
-            
             //else add it to the entries of 
             else {
             
@@ -108,7 +105,7 @@ void RegRep::push(int, Packet *q) {
             regrep_h* rep = (regrep_h*)(udp + 1);
             rep->type = 3; //reply
             rep->code = acceptCode;
-            rep->lifetime = 1800;
+            rep->lifetime = req->lifetime;
             rep->home_address = req->home_address;
             rep->identification = req->identification;
             rep->home_agent = req->home_agent;
