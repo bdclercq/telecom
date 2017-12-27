@@ -67,7 +67,12 @@ void RegNode::push(int, Packet* p) {
     
     }
     
-    //todo:: compare id's, if id's do not match, discard packet
+    int id1 = reph->identification;
+    int id2 = recentreq->id;
+    if(ntohl(reph->identification) != recentreq->id) {
+        p->kill();
+        return;
+    }
     
     uint8_t code = reph->code;
     uint16_t codestring = reph->code;
@@ -78,7 +83,7 @@ void RegNode::push(int, Packet* p) {
     
         click_chatter("WE'RE IN");
     
-        //_timer.clear();
+        _timer.clear();
         
         if (iph->ip_src != _mninfo->_home_agent) {
         
@@ -109,8 +114,6 @@ void RegNode::push(int, Packet* p) {
     }
     
     else {
-    
-        //log message
         
         _mninfo->pending.erase(_mninfo->pending.begin() + recentreqit);
     
