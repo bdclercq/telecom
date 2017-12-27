@@ -274,7 +274,7 @@ void Relay::relayRep(Packet* p) {
     
     uint32_t psize = p->length() - sizeof(click_ether);
     
-    //delete is udp checksum is wrong
+    //delete if udp checksum is wrong
     if ((click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udph, psize - sizeof(click_ip)), iph, psize - sizeof(click_ip)) != 0) && ntohs(udph->uh_sum) != 0) {
     
         p->kill();
@@ -300,7 +300,11 @@ void Relay::relayRep(Packet* p) {
         return;
     }
     
-    //TODO::check if the identifications matches
+    // if lower 32 bits of Identification fields do not match, discard silently
+	if((uint32_t)(htonl(entry->id) & 0xFFFFFFFFLL) != (uint32_t)(reph->identification & 0xFFFFFFFFLL)) {
+		p->kill();
+		return;
+	}
     
     //check if accepted and do your thing
     uint8_t code = reph->code;
@@ -352,7 +356,7 @@ void Relay::relayRep(Packet* p) {
     
     pck->set_dst_ip_anno(iph->ip_dst);
     
-    rudph->uh_sport = htons(rand() % 65535);
+    rudph->uh_sport = udph->uh_sport;
     rudph->uh_dport = udph->uh_dport;
     rudph->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
     
