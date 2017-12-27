@@ -108,10 +108,12 @@ void Relay::run_timer(Timer* timer) {
 
     //remove registrations with lifetime < 0
     
-    for (int i = 0; i < _fa->registrations.size(); i++) {
+    for (int i = 0; i < _fa->registrations.size();) {
     
-        if (_fa->registrations[i].second.remaining_lifetime > 0)
+        if (_fa->registrations[i].second.remaining_lifetime <= 0){
             _fa->registrations.erase(_fa->registrations.begin() + i);
+	}
+	else i++;
     
     }
 
@@ -120,13 +122,13 @@ void Relay::run_timer(Timer* timer) {
     for (int i = 0; i < _fa->registrations.size(); i++) {
     
         if (_fa->registrations[i].second.remaining_lifetime > 0)
-        _fa->registrations[i].second.remaining_lifetime;
+        _fa->registrations[i].second.remaining_lifetime-=1;
     
     }
     
     //lower liftetime of requests
     
-    for (int i = 0; i < _fa->requests.size(); i++) {
+    for (int i = 0; i < _fa->requests.size();) {
     
         vEntry* request = &_fa->requests[i];
         uint16_t lifetime = ntohs(request->remaining_lifetime);
@@ -135,12 +137,22 @@ void Relay::run_timer(Timer* timer) {
             
             request->remaining_lifetime = htons(--lifetime);
             
-            if (request->requested_lifetime - request->remaining_lifetime > 7) { //fa may delete request after more than 7 seconds
-            
-                //todo:: send timeout
-                //_fa.requests.erase(_fa.requests.begin() + i);
-            
-            }
+		if(request->requested_lifetime - request->remaining_lifetime > 7) {
+			// if request is pending for longer than 7 seconds, send timeout reply
+			uint8_t code = 78; // Registratioin timeout
+			in_addr ip_src = request->ip_dst.in_addr(); // IP source of reply copied from destination address of corresponding Request
+			in_addr ip_dst = request->ip_src.in_addr(); // IP destination = home address from corresponding Request
+			uint16_t udp_dst = request->udp_src; // copied from UDP source port of corresponding Request
+			uint64_t id = htonl(request->id);
+			in_addr home_agent = request->home_agent.in_addr();
+			Packet *packet = createRep(code, ip_src, ip_dst, udp_dst, id, home_agent);
+			output(0).push(packet);
+
+			// delete pending request entry
+			request = _fa->requests.erase(_fa->requests.begin()+i);
+			break;
+		}
+		else ++i;
         }
         else
             _fa->requests.erase(_fa->requests.begin() + i);                       //delete if lifetime is under zero or lower...
