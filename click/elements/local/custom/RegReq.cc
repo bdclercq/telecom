@@ -109,7 +109,7 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     rr->home_address = _mninfo->_home_address;
     rr->home_agent = _mninfo->_home_agent;
     rr->care_of_address = coaddress; //addressen zijn voorlopig hardcoded
-    rr->identification = htonl(Timestamp::now().subsec());
+    rr->identification = ID;
     
 
     udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
