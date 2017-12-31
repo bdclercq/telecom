@@ -71,57 +71,59 @@ void RegRep::push(int, Packet *q) {
                 _home_agent->_mobility_bindings.push_back(mi);
             
             }
+        }
+        
+        //make the reply
+        
+        int headroom = sizeof(click_ether) + 4;
+        int p_size = sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h);
+        WritablePacket* p = Packet::make(headroom, 0, p_size, 0);
+        
+        if (!p)
+            return;
             
-            //make the reply
-            
-            int headroom = sizeof(click_ether) + 4;
-            int p_size = sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h);
-            WritablePacket* p = Packet::make(headroom, 0, p_size, 0);
-            
-            if (!p)
-                return;
-                
-            memset(p->data(), 0, p->length());
-            
-            //ip fields
-            click_ip* ip = (click_ip*)p->data();
-            ip->ip_v = 4;
-            ip->ip_hl = 5;
-            ip->ip_tos = 0;
-            ip->ip_len = htons(p_size);
-            ip->ip_ttl = 64;
-            ip->ip_p = 17; //udp
-            ip->ip_src = rip->ip_dst;
-            ip->ip_dst = rip->ip_src;
-            ip->ip_sum = click_in_cksum((unsigned char*) ip, sizeof(click_ip));
-            
-            p->set_dst_ip_anno(ip->ip_dst);
-    
-            //udp fields
-            click_udp* udp = (click_udp*)(ip + 1);
-            udp->uh_sport = rudp->uh_dport;
-            udp->uh_dport = rudp->uh_sport;
-            udp->uh_ulen = htons(p->length() - sizeof(click_ip));
-            
-            //reply fields
-            regrep_h* rep = (regrep_h*)(udp + 1);
-            rep->type = 3; //reply
-            rep->code = acceptCode;
-            rep->lifetime = req->lifetime;
-            rep->home_address = req->home_address;
-            rep->identification = req->identification;
-            rep->home_agent = req->home_agent;
-            
-            udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
-            
-            if (req->home_address == req->care_of_address) {
-                output(0).push(p);
-                click_chatter("rep0");
-            }
-            else {
-                output(1).push(p);
-                click_chatter("rep1");
-            }
+        memset(p->data(), 0, p->length());
+        
+        //ip fields
+        click_ip* ip = (click_ip*)p->data();
+        ip->ip_v = 4;
+        ip->ip_hl = 5;
+        ip->ip_tos = 0;
+        ip->ip_len = htons(p_size);
+        ip->ip_ttl = 64;
+        ip->ip_p = 17; //udp
+        ip->ip_src = rip->ip_dst;
+        ip->ip_dst = rip->ip_src;
+        ip->ip_sum = click_in_cksum((unsigned char*) ip, sizeof(click_ip));
+        
+        p->set_dst_ip_anno(ip->ip_dst);
+
+        //udp fields
+        click_udp* udp = (click_udp*)(ip + 1);
+        udp->uh_sport = rudp->uh_dport;
+        udp->uh_dport = rudp->uh_sport;
+        
+        uint16_t templ = p->length() - sizeof(click_ip);
+        udp->uh_ulen = htons(templ);
+        
+        //reply fields
+        regrep_h* rep = (regrep_h*)(udp + 1);
+        rep->type = 3; //reply
+        rep->code = acceptCode;
+        rep->lifetime = req->lifetime;
+        rep->home_address = req->home_address;
+        rep->identification = req->identification;
+        rep->home_agent = req->home_agent;
+        
+        udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
+        
+        if (req->home_address == req->care_of_address) {
+            output(0).push(p);
+            click_chatter("Reply Locally");
+        }
+        else {
+            output(1).push(p);
+            click_chatter("Reply Externally");
         } 
     }
    

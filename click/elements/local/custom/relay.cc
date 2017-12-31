@@ -263,8 +263,9 @@ void Relay::relayReq(Packet* p) {
     
     pck->set_dst_ip_anno(iph->ip_dst);
     
-    rudph->uh_sport = htons(rand() % 65535);
+    rudph->uh_sport = htons(rand() % (65535 - 49152) + 49152);
     rudph->uh_dport = udph->uh_dport;
+    rudph->uh_sum = htons(0);
     rudph->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
     
     output(1).push(pck);
@@ -368,17 +369,19 @@ void Relay::relayRep(Packet* p) {
     pck->set_dst_ip_anno(iph->ip_dst);
     
     rudph->uh_sport = udph->uh_sport;
-    rudph->uh_dport = udph->uh_dport;
+    rudph->uh_dport = htons(entry->udp_src);
+    
+    rudph->uh_sum = htons(0);
     rudph->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
     
     pck->pull(14);
     //click_chatter("WE DO RELAY THE REPLY");
-    output(1).push(pck);
+    output(0).push(pck);
 }
 
 Packet* Relay::createRep(uint8_t code, IPAddress ips, IPAddress ipd, uint16_t udpd, uint64_t id, IPAddress home_agent) {
 
-    int headroom = sizeof(click_ether);
+    int headroom = sizeof(click_ether) + 4;
     int psize = sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h);
     WritablePacket* p = Packet::make(headroom, 0, psize, 0);
     
