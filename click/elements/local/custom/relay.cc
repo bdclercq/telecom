@@ -34,7 +34,7 @@ int Relay::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void Relay::push(int, Packet* p) {
 
-    click_chatter("WE GOT SOMETHING TO RELAY");
+    //click_chatter("WE GOT SOMETHING TO RELAY");
 
     click_ether* ethh = (click_ether*) p->data();
     click_ip* iph = (click_ip*) (ethh + 1);
@@ -80,21 +80,27 @@ void Relay::push(int, Packet* p) {
     
     else {
     
-        click_chatter("WE'VE COME THIS FAR, TIME TO SEE WHERE TO SEND");
+        //click_chatter("WE'VE COME THIS FAR, TIME TO SEE WHERE TO SEND");
     
         uint32_t p_size = p->length() - sizeof(click_ether);
         click_udp* udph = (click_udp*)(iph + 1);
         
         if (p_size == sizeof(click_ip) + sizeof(click_udp) + sizeof(regreq_h)) {
+        
             regreq_h* req = (regreq_h*)(udph + 1);
+            
             if (req->type == 1)
                 click_chatter("TO HOME AGENT");
                 relayReq(p);
         }
         
-        else if (p_size == sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h)) {
+        //click_chatter("IT'S NOT TO THE HOME AGENT");
+        
+        if (p_size == sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h)) {
+        
             regrep_h* rep = (regrep_h*)(udph + 1);
-            if (rep->type == 1)
+            
+            if (rep->type == 3)
                 click_chatter("TO MOBILE NODE");
                 relayRep(p);
         }
@@ -266,6 +272,8 @@ void Relay::relayReq(Packet* p) {
 }
 
 void Relay::relayRep(Packet* p) {
+
+    //click_chatter("WE TRY TO RELAY THE REPLY");
     
     click_ether* ethh = (click_ether*) p->data();
     click_ip* iph = (click_ip*)(ethh + 1);
@@ -282,6 +290,7 @@ void Relay::relayRep(Packet* p) {
     
     }
     
+    
     vEntry* entry;
     bool inlist = false;
     int iteration = 0;
@@ -295,16 +304,18 @@ void Relay::relayRep(Packet* p) {
         }
     }
     
-    if (inlist) {
+    if (!inlist) {
         p->kill();
         return;
     }
     
+    
     // if lower 32 bits of Identification fields do not match, discard silently
-	if((uint32_t)(htonl(entry->id) & 0xFFFFFFFFLL) != (uint32_t)(reph->identification & 0xFFFFFFFFLL)) {
+	/*if(entry->id != reph->identification) {
 		p->kill();
 		return;
-	}
+	}*/
+	
     
     //check if accepted and do your thing
     uint8_t code = reph->code;
@@ -361,6 +372,7 @@ void Relay::relayRep(Packet* p) {
     rudph->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
     
     pck->pull(14);
+    //click_chatter("WE DO RELAY THE REPLY");
     output(1).push(pck);
 }
 

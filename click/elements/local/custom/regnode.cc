@@ -22,7 +22,7 @@ int RegNode::configure(Vector<String> &conf, ErrorHandler *errh) {
         return -1;
 
     _timer.initialize(this);
-    _timer.schedule_after_msec(1000);
+    //_timer.schedule_after_msec(1000);
     return 0;
 }
 
@@ -125,7 +125,7 @@ void RegNode::push(int, Packet* p) {
 
 void RegNode::run_timer(Timer* timer) {
 
-    click_chatter("REGNODE TIMER");
+    //click_chatter("REGNODE TIMER");
     click_chatter(String(_mninfo->_lifetime).c_str());
 
     if (_mninfo->_lifetime > 0) {

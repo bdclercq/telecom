@@ -39,6 +39,8 @@ void RegRep::push(int, Packet *q) {
     
         int acceptCode = check_acceptable(q);
         
+        //click_chatter(String(acceptCode).c_str());
+        
         if (acceptCode == 0 or acceptCode == 1) {
         
             //check if the home address is the co address, if so; remove the info that this node is on a foreign network

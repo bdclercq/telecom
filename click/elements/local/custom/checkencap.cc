@@ -24,7 +24,6 @@ int CheckEncap::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CheckEncap::push(int, Packet* packet) {
 
-    // Encapsulated packages are send to output 0, normal packages to output 1
     click_ip* iph = (click_ip*)packet->data();
     if (iph->ip_p == 4)
         output(0).push(packet);
