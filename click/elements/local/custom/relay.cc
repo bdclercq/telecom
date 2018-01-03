@@ -167,7 +167,7 @@ void Relay::run_timer(Timer* timer) {
     
     //click_chatter("RELAY TIMER");
     
-    timer->reschedule_after_msec(1000);
+    timer->schedule_after_msec(1000);
 
 }
 
@@ -324,29 +324,38 @@ void Relay::relayRep(Packet* p) {
     
         uint16_t given_lifetime = ntohs(reph->lifetime);
         
-        if (given_lifetime == 0){
-        
-            IPAddress home_addr = reph->home_address;
-            
-            int iter = 0;            
-            for (int i = 0; i < _fa->registrations.size(); i++) {
-            
-                if (_fa->registrations[i].first == home_addr) {
-                    iter = i;
-                }
-            }
-            
-            _fa->registrations.erase(_fa->registrations.begin() + iter);
-        
-        }
-        else {
-        
-            IPAddress home_addr = reph->home_address;
-            
-            vEntry ent = *entry;
-            ent.remaining_lifetime = reph->lifetime;
-            std::pair<IPAddress, vEntry> newpair = std::make_pair(home_addr, ent);
-        }
+
+	if(given_lifetime != 0) {
+		IPAddress home_addr = reph->home_address;
+		int iter = -1;            
+            	for (int i = 0; i < _fa->registrations.size(); i++) {
+	                if (_fa->registrations[i].first == home_addr) {
+        	            iter = i;
+        	        }
+        	}
+		vEntry ent = *entry;
+           	ent.remaining_lifetime = reph->lifetime;
+		std::pair<IPAddress, vEntry> newpair = std::make_pair(home_addr, ent);
+		//add new pair
+		if (iter == -1){
+			_fa->registrations.push_back(newpair);
+		}
+		//update entry in list
+		else{
+			_fa->registrations[iter] = newpair;
+		}
+	}
+	else {
+		IPAddress home_addr = reph->home_address;
+           	int iter = 0;            
+            	for (int i = 0; i < _fa->registrations.size(); i++) {
+	                if (_fa->registrations[i].first == home_addr) {
+        	            iter = i;
+        	        }
+        	}
+	        _fa->registrations.erase(_fa->registrations.begin() + iter);
+	}
+
     }
     
     //delete from pending request
