@@ -69,7 +69,7 @@ void RegNode::push(int, Packet* p) {
     
     int id1 = reph->identification;
     int id2 = recentreq->id;
-    if(ntohl(reph->identification) != recentreq->id) {
+    if(id1 != id2) {
         p->kill();
         return;
     }
@@ -106,7 +106,7 @@ void RegNode::push(int, Packet* p) {
         }
         
         else {
-            _mninfo->_connected = true;
+            //_mninfo->_connected = true;
         }
         
         _mninfo->pending.erase(_mninfo->pending.begin() + recentreqit);
@@ -126,7 +126,7 @@ void RegNode::push(int, Packet* p) {
 void RegNode::run_timer(Timer* timer) {
 
     //click_chatter("REGNODE TIMER");
-    click_chatter(String(_mninfo->_lifetime).c_str());
+    //click_chatter(String(_mninfo->_lifetime).c_str());
 
     if (_mninfo->_lifetime > 0) {
     

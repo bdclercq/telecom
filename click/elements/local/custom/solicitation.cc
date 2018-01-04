@@ -36,6 +36,7 @@ void Solicitation::run_timer(Timer* timer)
     if (_mninfo->_connected || !_mninfo->_advertisements.empty()) {
     
         click_chatter(String(_mninfo->_connected).c_str());
+        click_chatter(String(_mninfo->_lifetime).c_str());
     
         _consequent_messages = 0;
         timer->reschedule_after_msec(1000);

@@ -106,7 +106,7 @@ void Relay::push(int, Packet* p) {
         }
     }
     
-    p->kill();
+    //p->kill();
 
 }
 
@@ -326,6 +326,7 @@ void Relay::relayRep(Packet* p) {
         
 
 	if(given_lifetime != 0) {
+	    //click_chatter("GIVEN LIFETIME IS NOT 0");
 		IPAddress home_addr = reph->home_address;
 		int iter = -1;            
             	for (int i = 0; i < _fa->registrations.size(); i++) {
@@ -338,14 +339,17 @@ void Relay::relayRep(Packet* p) {
 		std::pair<IPAddress, vEntry> newpair = std::make_pair(home_addr, ent);
 		//add new pair
 		if (iter == -1){
+		    //click_chatter("ITER -1");
 			_fa->registrations.push_back(newpair);
 		}
 		//update entry in list
 		else{
+		    //click_chatter("ITER ELSE");
 			_fa->registrations[iter] = newpair;
 		}
 	}
 	else {
+	    //click_chatter("GIVEN LIFETIME 0");
 		IPAddress home_addr = reph->home_address;
            	int iter = 0;            
             	for (int i = 0; i < _fa->registrations.size(); i++) {
@@ -370,12 +374,15 @@ void Relay::relayRep(Packet* p) {
     click_ip* riph = (click_ip*)(rethh + 1);
     click_udp* rudph = (click_udp*)(riph + 1);
     
-    riph->ip_len = htons(psize);
-    riph->ip_ttl = 64;
-    riph->ip_src = _fa->_address;
-    riph->ip_dst = reph->home_agent.in_addr();
+    //riph->ip_len = htons(psize);
+    //riph->ip_ttl = 64;
+    riph->ip_src = _privateIP;
+    riph->ip_dst = reph->home_address.in_addr();
     
-    pck->set_dst_ip_anno(iph->ip_dst);
+    //riph->ip_sum = htons(0);
+    //riph->ip_sum = click_in_cksum((unsigned char*) riph, sizeof(click_ip));
+    
+    pck->set_dst_ip_anno(riph->ip_dst);
     
     rudph->uh_sport = udph->uh_sport;
     rudph->uh_dport = htons(entry->udp_src);
@@ -384,8 +391,11 @@ void Relay::relayRep(Packet* p) {
     rudph->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)rudph, psize - sizeof(click_ip)), riph, psize - sizeof(click_ip));
     
     pck->pull(14);
+    assert(!pck->shared());
     //click_chatter("WE DO RELAY THE REPLY");
     output(0).push(pck);
+    
+    //p->kill();
 }
 
 Packet* Relay::createRep(uint8_t code, IPAddress ips, IPAddress ipd, uint16_t udpd, uint64_t id, IPAddress home_agent) {
