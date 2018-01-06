@@ -28,7 +28,7 @@ int RegNode::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void RegNode::push(int, Packet* p) {
 
-    click_chatter("WE ARE REGISTEREING");
+    //click_chatter("WE ARE REGISTEREING");
 
     click_ip* iph = (click_ip*) p->data();
     click_udp* udph = (click_udp*)(iph + 1);
@@ -77,17 +77,17 @@ void RegNode::push(int, Packet* p) {
     uint8_t code = reph->code;
     uint16_t codestring = reph->code;
     
-    click_chatter("WE CHECK THE CODE");
+    //click_chatter("WE CHECK THE CODE");
     
     if (code == 0 || code == 1) {
     
-        click_chatter("WE'RE IN");
+        //click_chatter("WE'RE IN");
     
         _timer.clear();
         
         if (iph->ip_src != _mninfo->_home_agent) {
         
-            click_chatter("EH...");
+            //click_chatter("EH...");
         
             _mninfo->_connected = true;
             _mninfo->_foreign_agent = recentreq->dest;
@@ -99,7 +99,7 @@ void RegNode::push(int, Packet* p) {
             
             _mninfo->_lifetime = lifetime;
             
-            click_chatter("WE GOT THE ADVERTISEMENT, LET'S START THE TIMER");
+            //click_chatter("WE GOT THE ADVERTISEMENT, LET'S START THE TIMER");
             
             _timer.schedule_after_msec(1000);
         

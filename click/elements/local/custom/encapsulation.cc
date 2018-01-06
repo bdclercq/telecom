@@ -29,7 +29,7 @@ if (Args(conf, this, errh)
 void Encapsulator::push(int, Packet* p) {
 
     int packetsize = p->length();
-    int headroom = sizeof(click_ip) + sizeof(click_ether);
+    int headroom = sizeof(click_ip) + sizeof(click_ether) + 4;
     WritablePacket* packet = Packet::make(headroom, 0, packetsize, 0);
     if (packet == 0)
     {
@@ -65,6 +65,9 @@ void Encapsulator::push(int, Packet* p) {
     packet->set_dst_ip_anno(iph->ip_dst);
 
     p->kill();
+    click_chatter("WE PUSH THE PACKET FORWARD");
+    IPAddress tempip = (IPAddress) iph->ip_dst;
+    //click_chatter(tempip.unparse().c_str());
     output(0).push(packet);
 }
 
@@ -73,6 +76,7 @@ in_addr Encapsulator::get_destination_ip(in_addr mobileNodeAddress)
     for (unsigned int i = 0; i < _ha->_mobility_bindings.size(); ++i)
     {
         if (_ha->_mobility_bindings[i].address == mobileNodeAddress)
+            //click_chatter(_ha->_mobility_bindings[i].careOfAddress.unparse().c_str());
             return _ha->_mobility_bindings[i].careOfAddress;
     }
 

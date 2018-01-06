@@ -15,7 +15,7 @@ elementclass Agent {
 	
 	Agent :: HA($private_address)
 	
-	Advertiser :: Advertisement($private_address, $public_address, true, false, false, 27, 5)
+	Advertiser :: Advertisement($private_address, $public_address, true, false, false, 27, 100)
 
 	// Shared IP input path and routing table
 	ip :: Strip(14)

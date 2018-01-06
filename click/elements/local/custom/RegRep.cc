@@ -68,6 +68,10 @@ void RegRep::push(int, Packet *q) {
                 mi.identification = req->identification;
                 mi.remainingLifetime = req->lifetime;
                 
+                //click_chatter(IPAddress(req->home_address).unparse().c_str());
+                //click_chatter(IPAddress(req->care_of_address).unparse().c_str());
+                
+                
                 _home_agent->_mobility_bindings.push_back(mi);
             
             }
@@ -95,6 +99,8 @@ void RegRep::push(int, Packet *q) {
         ip->ip_src = rip->ip_dst;
         ip->ip_dst = rip->ip_src;
         ip->ip_sum = click_in_cksum((unsigned char*) ip, sizeof(click_ip));
+        
+        click_chatter(IPAddress(ip->ip_src).unparse().c_str());
         
         p->set_dst_ip_anno(ip->ip_dst);
 

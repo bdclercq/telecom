@@ -84,7 +84,13 @@ elementclass Agent {
 
 	// Local delivery
 	rt[0]
+	    -> checkEncapsulation :: CheckEncap[1]
 		-> [2]output
+		
+	checkEncapsulation[0]
+	    -> StripIPHeader
+	    -> CheckIPHeader
+	    -> [0]private_arpq
 		
 		
     //if not port 434 or icmp

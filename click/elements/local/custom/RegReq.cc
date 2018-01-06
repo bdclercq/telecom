@@ -108,7 +108,7 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     rr->lifetime = htons(lifetime);
     rr->home_address = _mninfo->_home_address;
     rr->home_agent = _mninfo->_home_agent;
-    rr->care_of_address = coaddress; //addressen zijn voorlopig hardcoded
+    rr->care_of_address = coaddress;
     rr->identification = ID;
     
 
