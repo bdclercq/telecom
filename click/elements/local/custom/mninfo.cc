@@ -26,7 +26,15 @@ int MNInfo::configure(Vector<String> &conf, ErrorHandler *errh) {
     _foreign_agent = IPAddress(0);
     return 0;
         
+}
 
+void MNInfo::push(int, Packet* packet) {
+
+    // Send the package to the correct location
+    if (_connected)
+        packet->set_dst_ip_anno(_foreign_agent);
+
+    output(0).push(packet);
 }
 
 CLICK_ENDDECLS
