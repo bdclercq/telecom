@@ -4,13 +4,14 @@
 #include <click/element.hh>
 #include <click/hashmap.hh>
 
+#include "mninfo.hh"
+
 CLICK_DECLS
 
 class MN : public Element {
 
     public:
         MN();
-	    MN(IPAddress,IPAddress);
         ~MN();
         
         const char *class_name() const { return "MN"; }
@@ -19,13 +20,8 @@ class MN : public Element {
         
         int configure(Vector<String>&, ErrorHandler*);
 	    void push(int, Packet*);
-        
-        IPAddress _home_agent;
-        IPAddress _home_address;
-        
-        bool _connected;
-        IPAddress _foreign_agent;
-        uint16_t _lifetime;
+	    
+	    MNInfo* _mn;
 
 	    HashMap<IPAddress, Packet*> advertisements;
 

@@ -42,6 +42,7 @@ elementclass MobileNode {
 		-> FixIPSrc($address)
 		-> ttl :: DecIPTTL
 		-> frag :: IPFragmenter(1500)
+		-> MN(Info)
 		-> arpq :: ARPQuerier($address)
 		-> [0]output;
 		
@@ -73,6 +74,6 @@ elementclass MobileNode {
 		-> ip;
 		
 	//solicitation
-	Solicitation(Info, $address:ip)
+	Solicitation(Info, $address:ip, 5)
 	    ->arpq;
 }

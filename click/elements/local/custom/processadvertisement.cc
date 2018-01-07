@@ -85,7 +85,7 @@ void ProcessAdvertisements::push(int, Packet* packet) {
                         _mninfo->_advertisements.insert(ah->address, packet->clone());
                         _latestRegAttempt.assign_now();
                         
-                        click_chatter("TIME TO SEND A REQUEST");
+                        //click_chatter("TIME TO SEND A REQUEST");
                         output(1).push(packet);
                     
                     }

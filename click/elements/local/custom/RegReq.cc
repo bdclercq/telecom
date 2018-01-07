@@ -190,7 +190,7 @@ void RegReq::push(int, Packet* q) {
         IPAddress acoaddr = ahx->address;
         Packet* p = make_packet(asrc, htons(ahx->lifetime), acoaddr);
         if (p != 0) {
-            click_chatter("REQUEST!!!");
+            click_chatter("REQUEST");
             output(0).push(p);
         }
     }

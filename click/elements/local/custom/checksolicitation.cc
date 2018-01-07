@@ -34,6 +34,8 @@ void CheckSolicitation::push(int, Packet* packet) {
     
         solicitation_h* solh = (solicitation_h*)(iph + 1);
         
+        //click_chatter("THIS IS A SOLICITATION");
+        
         //solicitation
         if (solh->type == 10) {
             

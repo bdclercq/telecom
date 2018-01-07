@@ -35,8 +35,9 @@ void Solicitation::run_timer(Timer* timer)
     // Indien er reeds advertisements zijn; doe niets
     if (_mninfo->_connected || !_mninfo->_advertisements.empty()) {
     
-        click_chatter(String(_mninfo->_connected).c_str());
-        click_chatter(String(_mninfo->_lifetime).c_str());
+        //click_chatter(String(_mninfo->_connected).c_str());
+        //click_chatter(String(_mninfo->_lifetime).c_str());
+        //click_chatter("NOT CONNECTED OR ADV EMPTY");
     
         _consequent_messages = 0;
         timer->reschedule_after_msec(1000);

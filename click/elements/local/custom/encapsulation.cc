@@ -65,7 +65,7 @@ void Encapsulator::push(int, Packet* p) {
     packet->set_dst_ip_anno(iph->ip_dst);
 
     p->kill();
-    click_chatter("WE PUSH THE PACKET FORWARD");
+    //click_chatter("WE PUSH THE PACKET FORWARD");
     IPAddress tempip = (IPAddress) iph->ip_dst;
     //click_chatter(tempip.unparse().c_str());
     output(0).push(packet);
