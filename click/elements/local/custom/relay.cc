@@ -259,7 +259,7 @@ void Relay::relayReq(Packet* p) {
     riph->ip_len = htons(psize);
     riph->ip_ttl = 64;
     riph->ip_src = _fa->_address;
-    riph->ip_dst = reqh->home_agent.in_addr();
+    riph->ip_dst = reqh->home_address.in_addr();
     
     pck->set_dst_ip_anno(iph->ip_dst);
     
