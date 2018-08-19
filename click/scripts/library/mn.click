@@ -15,7 +15,7 @@
 elementclass MobileNode {
 	$address, $gateway, $home_agent |
 	
-	Info :: MNInfo($gateway, $address)
+	Info :: MNInfo($home_agent, $address, $gateway)
 
 	// Shared IP input path
 	ip :: Strip(14)

@@ -9,9 +9,10 @@ CLICK_DECLS
 
 MNInfo::MNInfo() : _connected(false) {}
 
-MNInfo::MNInfo(IPAddress agent, IPAddress address): _connected(false){
+MNInfo::MNInfo(IPAddress agent, IPAddress address, IPAddress gateway): _connected(false){
 	_home_agent = agent;
 	_home_address = address;
+	_gateway = gateway;
 }
 MNInfo::~MNInfo() {}
 
@@ -20,6 +21,7 @@ int MNInfo::configure(Vector<String> &conf, ErrorHandler *errh) {
     if (Args(conf, this, errh)
         .read_mp("HOMEAGENT", _home_agent)
         .read_mp("HOMEADDRES", _home_address)
+        .read_mp("GATEWAY", _gateway)
         .complete() < 0)
         return -1;
         

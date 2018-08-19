@@ -42,7 +42,7 @@ void Advertisement::push(int, Packet* packet) {
     click_ether* ethh = (click_ether*)packet->data();
     click_ip* iph = (click_ip*)(ethh + 1);
 
-    //click_chatter("WE GOT A SOLICITATION, SEND AN ADVERTISEMENT!!");
+//    click_chatter("WE GOT A SOLICITATION, SEND AN ADVERTISEMENT!!");
     sendPacket(iph->ip_src);
     packet->kill();
 }
@@ -50,18 +50,14 @@ void Advertisement::push(int, Packet* packet) {
 void Advertisement::run_timer(Timer *) {
 
     sendPacket(IPAddress::make_broadcast());
-    
     int interval = (_interval * 1000) + ((rand() % 100));
-    
-    //if (_FA)
-    //    click_chatter("ADV");
-    //    click_chatter(String(interval).c_str());
-
     _timer.reschedule_after_msec(interval);
 }
 
 void Advertisement::sendPacket(IPAddress destinationIP){
 
+//    click_chatter("Advertisement sendPacket");
+    
     int packetsize = sizeof(click_ip) + sizeof(advertisement_h) + sizeof(advertisement_h_e);
     int headroom = sizeof(click_ether) + 4;
     WritablePacket* packet = Packet::make(headroom, 0, packetsize, 0);

@@ -34,12 +34,14 @@ int Relay::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void Relay::push(int, Packet* p) {
 
-    //click_chatter("WE GOT SOMETHING TO RELAY");
+    click_chatter("Enter relay::push");
 
     click_ether* ethh = (click_ether*) p->data();
     click_ip* iph = (click_ip*) (ethh + 1);
     
     if (iph->ip_p == 1) {
+        click_chatter("ICMP code found");
+
         click_icmp* icmph = (click_icmp*)(iph + 1);
         click_ip* origip = (click_ip*)(icmph + 1);
         
@@ -80,8 +82,8 @@ void Relay::push(int, Packet* p) {
     
     else {
     
-        //click_chatter("WE'VE COME THIS FAR, TIME TO SEE WHERE TO SEND");
-    
+        click_chatter("Relay push to home agent or mobile node");
+
         uint32_t p_size = p->length() - sizeof(click_ether);
         click_udp* udph = (click_udp*)(iph + 1);
         
@@ -93,9 +95,7 @@ void Relay::push(int, Packet* p) {
                 click_chatter("TO HOME AGENT");
                 relayReq(p);
         }
-        
-        //click_chatter("IT'S NOT TO THE HOME AGENT");
-        
+
         if (p_size == sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h)) {
         
             regrep_h* rep = (regrep_h*)(udph + 1);
@@ -105,9 +105,6 @@ void Relay::push(int, Packet* p) {
                 relayRep(p);
         }
     }
-    
-    //p->kill();
-
 }
 
 void Relay::run_timer(Timer* timer) {
@@ -118,13 +115,12 @@ void Relay::run_timer(Timer* timer) {
     
         if (_fa->registrations[i].second.remaining_lifetime <= 0){
             _fa->registrations.erase(_fa->registrations.begin() + i);
-	}
-	else i++;
+	    }
+	    else i++;
     
     }
 
     //lower lifetime of registrations
-    
     for (int i = 0; i < _fa->registrations.size(); i++) {
     
         if (_fa->registrations[i].second.remaining_lifetime > 0)
@@ -132,47 +128,41 @@ void Relay::run_timer(Timer* timer) {
     
     }
     
-    //lower liftetime of requests
-    
+    //lower lifetime of requests
     for (int i = 0; i < _fa->requests.size();) {
     
         vEntry* request = &_fa->requests[i];
         uint16_t lifetime = ntohs(request->remaining_lifetime);
         
         if (request->requested_lifetime > 0) {
-            
             request->remaining_lifetime = htons(--lifetime);
-            
-		if(request->requested_lifetime - request->remaining_lifetime > 7) {
-			// if request is pending for longer than 7 seconds, send timeout reply
-			uint8_t code = 78; // Registratioin timeout
-			in_addr ip_src = request->ip_dst.in_addr(); // IP source of reply copied from destination address of corresponding Request
-			in_addr ip_dst = request->ip_src.in_addr(); // IP destination = home address from corresponding Request
-			uint16_t udp_dst = request->udp_src; // copied from UDP source port of corresponding Request
-			uint64_t id = htonl(request->id);
-			in_addr home_agent = request->home_agent.in_addr();
-			Packet *packet = createRep(code, ip_src, ip_dst, udp_dst, id, home_agent);
-			output(0).push(packet);
-
-			// delete pending request entry
-			request = _fa->requests.erase(_fa->requests.begin()+i);
-			break;
-		}
-		else ++i;
+		    if(request->requested_lifetime - request->remaining_lifetime > 7) {
+                // if request is pending for longer than 7 seconds, send timeout reply
+                uint8_t code = 78; // Registratioin timeout
+                in_addr ip_src = request->ip_dst.in_addr(); // IP source of reply copied from destination address of corresponding Request
+                in_addr ip_dst = request->ip_src.in_addr(); // IP destination = home address from corresponding Request
+                uint16_t udp_dst = request->udp_src; // copied from UDP source port of corresponding Request
+                uint64_t id = htonl(request->id);
+                in_addr home_agent = request->home_agent.in_addr();
+                Packet *packet = createRep(code, ip_src, ip_dst, udp_dst, id, home_agent);
+                output(0).push(packet);
+                // delete pending request entry
+                request = _fa->requests.erase(_fa->requests.begin()+i);
+                break;
+		    }
+		    else ++i;
         }
-        else
-            _fa->requests.erase(_fa->requests.begin() + i);                       //delete if lifetime is under zero or lower...
-    
+        else _fa->requests.erase(_fa->requests.begin() + i);                       //delete if lifetime is under zero or lower...
     }
-    
     //click_chatter("RELAY TIMER");
-    
     timer->schedule_after_msec(1000);
 
 }
 
 void Relay::relayReq(Packet* p) {
-    
+
+//    click_chatter("Relay request");
+
     click_ether* ethh = (click_ether*) p->data();
     click_ip* iph = (click_ip*)(ethh + 1);
     click_udp* udph = (click_udp*)(iph + 1);
@@ -182,10 +172,8 @@ void Relay::relayReq(Packet* p) {
     
     //delete is udp checksum is wrong
     if ((click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udph, psize - sizeof(click_ip)), iph, psize - sizeof(click_ip)) != 0) && ntohs(udph->uh_sum) != 0) {
-    
         p->kill();
         return;
-    
     }
     
     uint8_t code;
@@ -193,33 +181,27 @@ void Relay::relayReq(Packet* p) {
     
     //reject (66) registration limit is already met
     if (_registrationLimit > -1 && _fa->registrations.size() >= _registrationLimit){
-    
         code = 66;
         reject = true;
-    
     }
     
     uint8_t flags = reqh->flags;
     
     //reject (70) if flag 1 or flag 2 are 1 (which shouldn't happen)
     if ((flags & 1) || ((flags >> 2) & 1)) {
-    
         code = 70;
         reject = true;
-    
     }
     
     //reject (72) if flag 3 or flag 4 is 1
     if (((flags >> 3) & 1) || ((flags >> 4) & 1)) {
-    
         code = 70;
         reject = true;
-    
     }
     
     //send actual reject
     if (reject) {
-    
+//        click_chatter("Relay reject request");
         IPAddress ips = iph->ip_dst;
         IPAddress ipd = iph->ip_src;
         
@@ -235,7 +217,9 @@ void Relay::relayReq(Packet* p) {
         return;
     
     }
-    
+
+//    click_chatter("Relay pending request");
+
     //if not rejected, the request is now pending
     vEntry entry;
     entry.eth_src = EtherAddress(ethh->ether_shost);
@@ -259,7 +243,7 @@ void Relay::relayReq(Packet* p) {
     riph->ip_len = htons(psize);
     riph->ip_ttl = 64;
     riph->ip_src = _fa->_address;
-    riph->ip_dst = reqh->home_address.in_addr();
+    riph->ip_dst = reqh->home_agent.in_addr();
     
     pck->set_dst_ip_anno(iph->ip_dst);
     
@@ -274,7 +258,7 @@ void Relay::relayReq(Packet* p) {
 
 void Relay::relayRep(Packet* p) {
 
-    //click_chatter("WE TRY TO RELAY THE REPLY");
+//    click_chatter("Relay reply");
     
     click_ether* ethh = (click_ether*) p->data();
     click_ip* iph = (click_ip*)(ethh + 1);
@@ -285,10 +269,8 @@ void Relay::relayRep(Packet* p) {
     
     //delete if udp checksum is wrong
     if ((click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udph, psize - sizeof(click_ip)), iph, psize - sizeof(click_ip)) != 0) && ntohs(udph->uh_sum) != 0) {
-    
         p->kill();
         return;
-    
     }
     
     
@@ -296,7 +278,6 @@ void Relay::relayRep(Packet* p) {
     bool inlist = false;
     int iteration = 0;
     for (int i = 0; i < _fa->requests.size(); i++) {
-    
         if (_fa->requests[i].ip_src == reph->home_address) {
             inlist = true;
             entry = & _fa->requests[i];
@@ -306,82 +287,64 @@ void Relay::relayRep(Packet* p) {
     }
     
     if (!inlist) {
+//        click_chatter("Can't relay");
         p->kill();
         return;
     }
     
-    
-    // if lower 32 bits of Identification fields do not match, discard silently
-	/*if(entry->id != reph->identification) {
-		p->kill();
-		return;
-	}*/
-	
-    
     //check if accepted and do your thing
     uint8_t code = reph->code;
     if (code == 0 || code == 1) {
-    
         uint16_t given_lifetime = ntohs(reph->lifetime);
-        
-
-	if(given_lifetime != 0) {
-	    //click_chatter("GIVEN LIFETIME IS NOT 0");
-		IPAddress home_addr = reph->home_address;
-		int iter = -1;            
-            	for (int i = 0; i < _fa->registrations.size(); i++) {
-	                if (_fa->registrations[i].first == home_addr) {
-        	            iter = i;
-        	        }
-        	}
-		vEntry ent = *entry;
-           	ent.remaining_lifetime = reph->lifetime;
-		std::pair<IPAddress, vEntry> newpair = std::make_pair(home_addr, ent);
-		//add new pair
-		if (iter == -1){
-		    //click_chatter("ITER -1");
-			_fa->registrations.push_back(newpair);
-		}
-		//update entry in list
-		else{
-		    //click_chatter("ITER ELSE");
-			_fa->registrations[iter] = newpair;
-		}
-	}
-	else {
-	    //click_chatter("GIVEN LIFETIME 0");
-		IPAddress home_addr = reph->home_address;
-           	int iter = 0;            
-            	for (int i = 0; i < _fa->registrations.size(); i++) {
-	                if (_fa->registrations[i].first == home_addr) {
-        	            iter = i;
-        	        }
-        	}
+	    if(given_lifetime != 0) {
+            //click_chatter("GIVEN LIFETIME IS NOT 0");
+            IPAddress home_addr = reph->home_address;
+            int iter = -1;
+            for (int i = 0; i < _fa->registrations.size(); i++) {
+                if (_fa->registrations[i].first == home_addr) {
+                    iter = i;
+                }
+            }
+            vEntry ent = *entry;
+            ent.remaining_lifetime = reph->lifetime;
+            std::pair<IPAddress, vEntry> newpair = std::make_pair(home_addr, ent);
+            //add new pair
+            if (iter == -1){
+                //click_chatter("ITER -1");
+                _fa->registrations.push_back(newpair);
+            }
+            //update entry in list
+            else{
+                //click_chatter("ITER ELSE");
+                _fa->registrations[iter] = newpair;
+            }
+	    }
+	    else {
+            //click_chatter("GIVEN LIFETIME 0");
+            IPAddress home_addr = reph->home_address;
+            int iter = 0;
+            for (int i = 0; i < _fa->registrations.size(); i++) {
+                if (_fa->registrations[i].first == home_addr) {
+                    iter = i;
+                }
+            }
 	        _fa->registrations.erase(_fa->registrations.begin() + iter);
-	}
-
+	    }
     }
     
     //delete from pending request
-    
     _fa->requests.erase(_fa->requests.begin() + iteration);    
     
     //relay back
-    
     WritablePacket* pck = p->uniqueify();
     
     click_ether* rethh = (click_ether*) pck->data();
     click_ip* riph = (click_ip*)(rethh + 1);
     click_udp* rudph = (click_udp*)(riph + 1);
-    
-    //riph->ip_len = htons(psize);
-    //riph->ip_ttl = 64;
+
     riph->ip_src = _privateIP;
     riph->ip_dst = reph->home_address.in_addr();
-    
-    //riph->ip_sum = htons(0);
-    //riph->ip_sum = click_in_cksum((unsigned char*) riph, sizeof(click_ip));
-    
+
     pck->set_dst_ip_anno(riph->ip_dst);
     
     rudph->uh_sport = udph->uh_sport;
@@ -392,10 +355,8 @@ void Relay::relayRep(Packet* p) {
     
     pck->pull(14);
     assert(!pck->shared());
-    //click_chatter("WE DO RELAY THE REPLY");
+//    click_chatter("WE DO RELAY THE REPLY");
     output(0).push(pck);
-    
-    //p->kill();
 }
 
 Packet* Relay::createRep(uint8_t code, IPAddress ips, IPAddress ipd, uint16_t udpd, uint64_t id, IPAddress home_agent) {

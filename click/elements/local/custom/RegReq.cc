@@ -34,6 +34,8 @@ int RegReq::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddress) {
 
+//    click_chatter("Make registration request");
+
     //dest is the src address of the advertised agent of the mn
     //lifetime is the lifetime advertised
     //coaddress is the coaddress give via the advertisement
@@ -77,7 +79,6 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     ip->ip_dst = dest;
     ip->ip_tos = 0;
     ip->ip_off = 0;
-    
     ip->ip_ttl = 64;
     ip->ip_sum = click_in_cksum((unsigned char*) ip, sizeof(click_ip));
     
@@ -93,8 +94,7 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     regreq_h* rr = (regreq_h*)(udp + 1);
     
     rr->type = 1; //request
-    
-    
+
     uint8_t flagint = (0 << 7)  //hardcoded for now
                     + (0 << 6)  //broadcast datagrams is not supported
                     + (0 << 5)  //co-located care-of addresses are not supported
@@ -110,50 +110,35 @@ Packet* RegReq::make_packet(IPAddress dest, uint16_t lifetime, IPAddress coaddre
     rr->home_agent = _mninfo->_home_agent;
     rr->care_of_address = coaddress;
     rr->identification = ID;
-    
 
     udp->uh_sum = click_in_cksum_pseudohdr(click_in_cksum((unsigned char*)udp, p_size - sizeof(click_ip)), ip, p_size - sizeof(click_ip));
 
     return q;
-
 }
 
 void RegReq::run_timer(Timer* timer) {
 
     //take the information from the agent advertisement from the mninfo
-
-    /*if (Packet* q = make_packet(IPAddress("20.0.0.0"), 1800, IPAddress("20.0.0.1"))) {
-        output(0).push(q);
-        click_chatter("req");
-        _timer.reschedule_after_msec(1000);
-    }*/
-    
     Vector<Vector<request>> removable;
     for (int i = 0; i < _mninfo->pending.size();) {
-    
         uint16_t lt = ntohs(_mninfo->pending[i].rem_lt);
         if (lt > 0) {
-        
             lt--;
-            
             _mninfo->pending[i].rem_lt = htons(lt);
-            
             ++i;
-        
         }
         else {
-        
             _mninfo->pending.erase(_mninfo->pending.begin() + i);
             continue;
-        
         }
     }
-    
     timer->reschedule_after_msec(1000);
     
 }
 
 void RegReq::push(int, Packet* q) {
+
+//    click_chatter("Push registration request");
 
     click_ip* aip = (click_ip*)q->data();
     advertisement_h* ah = (advertisement_h*)(aip + 1);
@@ -165,38 +150,33 @@ void RegReq::push(int, Packet* q) {
     bool home = (axflags >> 5) & 1;
     bool foreign = (axflags >> 4) & 1;
     
-    //indien de agent zijn address == het address van de home agent van de mobile node
-    if (asrc == _mninfo->_home_agent) {
-    
+    if (asrc == _mninfo->_gateway) {
+//        click_chatter("HOME");
         //indien het address van de foreign agent != het address van de home agent van de mobile node
         //dan adverteert zijn home agent nu, de mobile node is niet langer op reis
-        if (_mninfo->_foreign_agent != _mninfo->_home_agent && home) {
-            
-            _mninfo->_foreign_agent = _mninfo->_home_agent;
+        if (_mninfo->_foreign_agent != _mninfo->_gateway && home) {
+            _mninfo->_foreign_agent = _mninfo->_gateway;
             _mninfo->_lifetime = 0;
             
             //deregistreren
-            
             Packet* p = make_packet(asrc, 0, _mninfo->_home_address);
             if (p != 0) {
-                click_chatter("DEREGISTER REQUEST");
+//                click_chatter("DEREGISTER REQUEST");
                 output(0).push(p);
             }
         }
     }
-    
     //de agent is foreign
     else if (foreign) {
+//        click_chatter("FOREIGN");
         IPAddress acoaddr = ahx->address;
         Packet* p = make_packet(asrc, htons(ahx->lifetime), acoaddr);
         if (p != 0) {
-            click_chatter("REQUEST");
+//            click_chatter("REQUEST");
             output(0).push(p);
         }
     }
-
     q->kill();
-
 }
 
 CLICK_ENDDECLS

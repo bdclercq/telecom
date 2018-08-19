@@ -34,10 +34,13 @@ void Solicitation::run_timer(Timer* timer)
     // Indien de mobile node reeds verbonden is; doe niets
     // Indien er reeds advertisements zijn; doe niets
     if (_mninfo->_connected || !_mninfo->_advertisements.empty()) {
-    
-        //click_chatter(String(_mninfo->_connected).c_str());
-        //click_chatter(String(_mninfo->_lifetime).c_str());
-        //click_chatter("NOT CONNECTED OR ADV EMPTY");
+
+        if(_mninfo->_connected){
+//            click_chatter("Solicitation run_timer: MN connected");
+        }
+        else {
+//            click_chatter("Solicitation run_timer: MN has advertisements");
+        }
     
         _consequent_messages = 0;
         timer->reschedule_after_msec(1000);
@@ -47,7 +50,8 @@ void Solicitation::run_timer(Timer* timer)
 
     // Na een gespecifieerd aantal pogingen, stoppen we met een agent te vinden
     if (_consequent_messages >= _max_tries) {
-    
+
+//        click_chatter("Solicitation run_timer: no agent found within max tries");
         timer->reschedule_after_msec(1000);
         return;
         
@@ -60,7 +64,6 @@ void Solicitation::run_timer(Timer* timer)
     
     WritablePacket* packet = Packet::make(headroom, 0, packetsize, 0);
     memset(packet->data(), 0, packet->length());
-
 
     //solicitations hebben een ttl van 1!
     click_ip* iph = (click_ip*)packet->data();

@@ -30,55 +30,43 @@ int RegRep::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void RegRep::push(int, Packet *q) {
 
+//    click_chatter("RegRep::push");
+
     click_ip* rip = (click_ip*)q->data();
     click_udp* rudp = (click_udp*)(rip + 1);
     regreq_h* req = (regreq_h*)(rudp + 1);
 
     //if the type is a request, go on...
     if (req->type == 1) {
-    
+//        click_chatter("RegRep request found");
         int acceptCode = check_acceptable(q);
-        
         //click_chatter(String(acceptCode).c_str());
-        
         if (acceptCode == 0 or acceptCode == 1) {
-        
             //check if the home address is the co address, if so; remove the info that this node is on a foreign network
             if (req->home_address == req->care_of_address) {
-            
+//                click_chatter("COA == home address");
                 for (int i = 0; i < _home_agent->_mobility_bindings.size();) {
-                
                     if (_home_agent->_mobility_bindings[i].address == req->home_address) {
-                    
                         _home_agent->_mobility_bindings.erase(_home_agent->_mobility_bindings.begin() + i);
                         continue;
-                    
                     }
-                    
                     ++i;
                 }
-            
             }
-            //else add it to the entries of 
+            //else add it to the entries
             else {
-            
                 mobile_info mi;
                 mi.address = IPAddress(req->home_address);
                 mi.careOfAddress = IPAddress(req->care_of_address);
                 mi.identification = req->identification;
                 mi.remainingLifetime = req->lifetime;
-                
                 //click_chatter(IPAddress(req->home_address).unparse().c_str());
                 //click_chatter(IPAddress(req->care_of_address).unparse().c_str());
-                
-                
                 _home_agent->_mobility_bindings.push_back(mi);
-            
             }
         }
-        
         //make the reply
-        
+//        click_chatter("Create reply");
         int headroom = sizeof(click_ether) + 4;
         int p_size = sizeof(click_ip) + sizeof(click_udp) + sizeof(regrep_h);
         WritablePacket* p = Packet::make(headroom, 0, p_size, 0);
@@ -100,7 +88,7 @@ void RegRep::push(int, Packet *q) {
         ip->ip_dst = rip->ip_src;
         ip->ip_sum = click_in_cksum((unsigned char*) ip, sizeof(click_ip));
         
-        click_chatter(IPAddress(ip->ip_src).unparse().c_str());
+//        click_chatter(IPAddress(ip->ip_src).unparse().c_str());
         
         p->set_dst_ip_anno(ip->ip_dst);
 
@@ -125,15 +113,15 @@ void RegRep::push(int, Packet *q) {
         
         if (req->home_address == req->care_of_address) {
             output(0).push(p);
-            click_chatter("Reply Locally");
+//            click_chatter("Reply Locally");
         }
         else {
             output(1).push(p);
-            click_chatter("Reply Externally");
+//            click_chatter("Reply Externally");
         } 
     }
-   
    //if not a request... KILL
+//   click_chatter("Kill cause not a request");
     q->kill();
 }
 
@@ -158,14 +146,10 @@ int RegRep::check_acceptable(Packet *p) {
     
     //check if binding is already found...
     for (int i = 0; i < _home_agent->_mobility_bindings.size(); i++) {
-    
         if (_home_agent->_mobility_bindings[i].address == req->home_address) {
-        
             found = 1;
             break;
-                    
         }
-    
     }
     
     //B bit should always be set to zero as broadcasting datagrams is not supported
@@ -177,9 +161,7 @@ int RegRep::check_acceptable(Packet *p) {
     if (req->home_agent == IPAddress("255.255.255.255")) {
         return 136;
     }
-
-    return 1;
-
+    return 0;
 }
 
 CLICK_ENDDECLS

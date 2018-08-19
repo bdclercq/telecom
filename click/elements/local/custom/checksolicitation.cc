@@ -24,7 +24,7 @@ int CheckSolicitation::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CheckSolicitation::push(int, Packet* packet) {
 
-    //click_chatter("CHECK SOLICITATION");
+//    click_chatter("CHECK SOLICITATION");
 
     click_ether* ethh = (click_ether*)packet->data();
     click_ip* iph = (click_ip*)(ethh + 1);
@@ -34,50 +34,37 @@ void CheckSolicitation::push(int, Packet* packet) {
     
         solicitation_h* solh = (solicitation_h*)(iph + 1);
         
-        //click_chatter("THIS IS A SOLICITATION");
+//        click_chatter("ICMP solicitation");
         
         //solicitation
         if (solh->type == 10) {
-            
             if (iph->ip_src == 0) {
-            
                 packet->kill();
                 return;
-            
             }
             
             if (click_in_cksum((unsigned char*)solh, sizeof(solicitation_h)) != 0) {
-            
                 packet->kill();
                 return;
-            
             }
             
             if (solh->code != 0) {
-            
                 packet->kill();
                 return;
-            
             }
             
             if (ntohs(iph->ip_len) >= 8 + sizeof(click_ip)) {
-            
                 packet->kill();
                 return;
-            
             }
-            
-            //click_chatter("YAY WE ACCEPT THE SOLICIATION");
-            
+//            click_chatter("YAY WE ACCEPT THE SOLICIATION");
             output(0).push(packet);
             return;
-            
         }
     }
-    
     //if not icmp, not an solicitation
+//    click_chatter("Not a solicitation");
     output(1).push(packet);
-    
 }
 
 CLICK_ENDDECLS

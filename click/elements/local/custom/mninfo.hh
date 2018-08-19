@@ -22,7 +22,7 @@ class MNInfo : public Element {
 
     public:
         MNInfo();
-	    MNInfo(IPAddress,IPAddress);
+	    MNInfo(IPAddress,IPAddress,IPAddress);
         ~MNInfo();
         
         const char *class_name() const { return "MNInfo"; }
@@ -34,6 +34,7 @@ class MNInfo : public Element {
         
         IPAddress _home_agent;
         IPAddress _home_address;
+        IPAddress _gateway;
         
         bool _connected;
         IPAddress _foreign_agent;
